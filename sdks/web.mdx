@@ -1,0 +1,290 @@
+---
+title: "Web SDK"
+description: "Embed in-app bug reporting in any web application with the @calda/bug-sdk package."
+---
+
+## Overview
+
+The Web SDK (`@calda/bug-sdk`) adds a floating bug-report button to your web application. It automatically captures console logs, errors, network requests, user breadcrumbs, and navigation events. Users can take screenshots, record their screen (up to 30 seconds), and submit rich bug reports — all sent directly to the BugSense backend.
+
+## Installation
+
+<CodeGroup>
+
+```bash npm
+npm install @calda/bug-sdk
+```
+
+```bash pnpm
+pnpm add @calda/bug-sdk
+```
+
+```bash yarn
+yarn add @calda/bug-sdk
+```
+
+</CodeGroup>
+
+**Peer dependencies** (optional): `react >= 18`, `react-dom >= 18`, `next >= 13`
+
+## Quick start
+
+### 1. Initialize the SDK
+
+Create a client component that runs once on mount:
+
+```tsx
+"use client";
+
+import { useEffect } from "react";
+import CaldaBug from "@calda/bug-sdk";
+
+export default function CaldaInit() {
+  useEffect(() => {
+    CaldaBug.init({
+      endpoint: "https://calda-bugsense-backend.onrender.com/api/v1/issues",
+      apiKey: "YOUR_PROJECT_API_KEY",
+      env: "production",
+      release: "myapp@1.0.0",
+      app: { name: "My App", version: "1.0.0", build: "1" },
+      session: { sessionId: crypto.randomUUID() },
+    });
+  }, []);
+
+  return null;
+}
+```
+
+### 2. Add the floating button
+
+In your root layout, wrap your app with the provider and add the floating button:
+
+```tsx
+import { CaldaBugProvider, CaldaBugFloatingButton } from "@calda/bug-sdk/react";
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <CaldaInit />
+        <CaldaBugProvider>
+          {children}
+          <CaldaBugFloatingButton />
+        </CaldaBugProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 3. Enable network capture (optional)
+
+Wrap the global `fetch` to capture network requests:
+
+```tsx
+"use client";
+
+import { useEffect } from "react";
+import CaldaBug from "@calda/bug-sdk";
+
+export default function CaldaInit() {
+  useEffect(() => {
+    CaldaBug.init({ /* config */ });
+
+    if (typeof window !== "undefined") {
+      window.fetch = CaldaBug.createFetchWrapper();
+    }
+  }, []);
+
+  return null;
+}
+```
+
+You can pass a `redactUrl` function to strip sensitive query parameters:
+
+```ts
+window.fetch = CaldaBug.createFetchWrapper(
+  (url) => url.split("?")[0]
+);
+```
+
+## Configuration
+
+```typescript
+CaldaBug.init({
+  endpoint: string;           // Backend ingest URL (required)
+  apiKey: string;             // Fallback auth key (required)
+  env: string;                // "staging" | "production" (required)
+  release: string;            // e.g. "myapp@1.0.0" (required)
+  app: {                      // App metadata (required)
+    name: string;
+    version: string;
+    build: string;
+  };
+  session: {                  // Session info (required)
+    sessionId: string;
+    user?: Record<string, unknown>;
+  };
+
+  // Optional
+  sdkVersion?: string;              // Default: "0.1.0"
+  schemaVersion?: string;           // Default: "1.0.0"
+  maxEvents?: number;               // Ring buffer size (default: 800)
+  uploadTimeoutMs?: number;         // Upload timeout in ms (default: 60000)
+  enableFloatingButton?: boolean;   // Show floating button (default: true)
+  enableConsoleCapture?: boolean;   // Capture console.log/warn/error (default: true)
+  enableErrorCapture?: boolean;     // Capture window errors (default: true)
+  enableNetworkCapture?: boolean;   // Capture fetch requests (default: true)
+  enableBreadcrumbCapture?: boolean; // Capture click breadcrumbs (default: true)
+  redaction?: RedactionConfig;      // Sensitive data redaction rules
+});
+```
+
+## What the SDK captures
+
+| Category | Source | Event type |
+|----------|--------|------------|
+| **Console** | `console.log`, `warn`, `error`, `debug` | `log` |
+| **Errors** | `window.onerror`, `unhandledrejection` | `err` |
+| **Breadcrumbs** | Document click events (tag, id, role) | `breadcrumb` |
+| **Network** | `fetch` calls (method, URL, status, duration) | `net` |
+| **Navigation** | Route changes (via manual wiring) | `nav` |
+
+All events are stored in a ring buffer (default capacity: 800). Older events are dropped when the buffer is full.
+
+## Navigation tracking
+
+For Next.js apps, use the built-in router observer:
+
+```tsx
+"use client";
+
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+import CaldaBug from "@calda/bug-sdk";
+
+export function RouteTracker() {
+  const pathname = usePathname();
+  const prev = useRef(pathname);
+
+  useEffect(() => {
+    if (prev.current !== pathname) {
+      CaldaBug.addEvent({
+        type: "nav",
+        data: { from: prev.current, to: pathname },
+      });
+      prev.current = pathname;
+    }
+  }, [pathname]);
+
+  return null;
+}
+```
+
+## Custom events
+
+Add custom events to the buffer at any time:
+
+```ts
+CaldaBug.addEvent({
+  type: "custom",
+  data: { action: "checkout", cartTotal: 49.99 },
+});
+```
+
+## State snapshots
+
+Provide a function that returns your app's current state. This snapshot is included in every report:
+
+```ts
+CaldaBug.setStateSnapshotProvider(() => ({
+  currentScreen: "checkout",
+  cartItems: 3,
+  userId: "user_abc",
+}));
+```
+
+## Programmatic API
+
+| Method | Description |
+|--------|-------------|
+| `CaldaBug.init(config)` | Initialize the SDK |
+| `CaldaBug.addEvent(event)` | Add a custom event to the buffer |
+| `CaldaBug.getLastLogLines({ limit })` | Get recent log lines (default: 500) |
+| `CaldaBug.getDeviceInfo()` | Get browser and device metadata |
+| `CaldaBug.getReproductionSummary()` | Generate a text summary from captured events |
+| `CaldaBug.setStateSnapshotProvider(fn)` | Register an app-state snapshot function |
+| `CaldaBug.createFetchWrapper(redactUrl?)` | Create a wrapped `fetch` that logs network events |
+| `CaldaBug.report(params)` | Manually build and upload a report |
+
+## Report payload
+
+When a report is submitted (via the floating button or `CaldaBug.report()`), the SDK sends a `multipart/form-data` request to the configured `endpoint`:
+
+| Part | Content |
+|------|---------|
+| `payload.json.gz` | Gzipped JSON with SDK info, device info, session, events, reproduction summary, user message |
+| `screenshot.png` | Screenshot capture (if taken) |
+| `attachment_0.webm` | Screen recording (if recorded) |
+| `attachment_N.*` | Additional image attachments |
+
+The JSON payload includes:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "sdk": { "name": "@calda/bug-sdk", "version": "1.0.13", "platform": "web" },
+  "timestamp": "2026-03-17T10:00:00Z",
+  "env": "production",
+  "release": "myapp@1.0.0",
+  "app": { "name": "My App", "version": "1.0.0", "build": "1" },
+  "device": { "platform": "web", "os": "macOS", "browser": "Chrome 133", ... },
+  "session": { "sessionId": "..." },
+  "userMessage": "Button doesn't respond on click",
+  "reproductionSummary": "Navigated to /settings, clicked Save button, ...",
+  "events": [ ... ],
+  "attachments": { "screenshot": true, "count": 2 }
+}
+```
+
+## Redaction
+
+The SDK automatically redacts sensitive data from network captures and events:
+
+```typescript
+CaldaBug.init({
+  redaction: {
+    keyBlocklist: ["authorization", "password", "token", "secret"],
+    queryBlocklist: ["token", "auth", "jwt", "api_key"],
+    valuePatterns: [/Bearer\s+\S+/gi],
+    urlBlocklist: [/\/auth\//],
+    replacement: "[REDACTED]",
+  },
+});
+```
+
+Default redaction is applied even without explicit configuration.
+
+## React components
+
+Exported from `@calda/bug-sdk/react`:
+
+| Component | Description |
+|-----------|-------------|
+| `CaldaBugProvider` | Context wrapper (place at app root) |
+| `CaldaBugFloatingButton` | Floating action button with screenshot, recording, and report UI |
+| `ReportSheet` | Report form dialog (used internally by the floating button) |
+| `LoginScreen` | Supabase login dialog for authenticating reporters |
+
+## User authentication
+
+The SDK includes a built-in Supabase login flow. When a user taps the floating button without an active session, they are prompted to log in. The session token is then used as the `Authorization` header for report uploads.
+
+If your app manages its own auth, pass the token directly:
+
+```ts
+await CaldaBug.report({
+  userMessage: "Something broke",
+  token: myAuthToken,
+});
+```

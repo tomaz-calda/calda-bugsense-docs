@@ -1,0 +1,36 @@
+---
+title: "OpenAI"
+description: "How BugSense uses OpenAI for duplicate detection and AI-generated weekly reports."
+---
+
+## Overview
+
+BugSense uses the OpenAI API for two AI-powered features: duplicate issue detection and weekly report generation.
+
+## Duplicate detection
+
+When a new issue is submitted, BugSense can check it against existing open issues to detect potential duplicates. This uses a classification prompt sent to the configured dedup model (default: `gpt-4o-mini`).
+
+If a potential duplicate is detected, the issue is still created but may be flagged or labeled accordingly in Linear.
+
+## Weekly report generation
+
+Every Monday, BugSense generates a weekly report for each active project. The report includes:
+
+- **Headline** — A one-line summary of the week
+- **Summary** — A narrative overview of bug activity
+- **Highlights** — Key accomplishments and resolutions
+- **Risks** — Identified concerns or blockers
+- **Next steps** — Recommended actions
+- **Metrics** — Issues opened, updated, resolved, active, comments, and duplicates
+- **Top issues** — Most significant issues with their current status
+
+The LLM receives structured data about the week's activity and produces the narrative sections. Reports are created in `draft` status and require admin approval before being sent to clients.
+
+## Configuration
+
+| Variable | Description |
+|----------|-------------|
+| `OPEN_API_KEY` | OpenAI API key |
+| `OPENAI_DEDUP_MODEL` | Model for duplicate detection (default: `gpt-4o-mini`) |
+| `OPENAI_WEEKLY_REPORT_MODEL` | Model for report generation (default: `gpt-4o-mini`) |

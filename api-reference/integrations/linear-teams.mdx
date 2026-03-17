@@ -1,0 +1,46 @@
+---
+title: "List Linear teams"
+api: "GET /api/v1/integrations/linear/teams"
+description: "Returns teams from the connected Linear workspace. Admin only."
+---
+
+## Authentication
+
+<Icon icon="shield" /> Requires **admin** role
+
+## Query parameters
+
+<ParamField query="teamLeadUserId" type="string" optional>
+  Filter teams by a specific team lead's Linear connection.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of Linear team objects.
+
+  <Expandable title="team object">
+    <ResponseField name="id" type="string">Linear team ID</ResponseField>
+    <ResponseField name="name" type="string">Team name</ResponseField>
+    <ResponseField name="key" type="string">Team key/prefix</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": [
+    {
+      "id": "team_xyz",
+      "name": "Engineering",
+      "key": "ENG"
+    },
+    {
+      "id": "team_abc",
+      "name": "Design",
+      "key": "DES"
+    }
+  ]
+}
+```
+</ResponseExample>

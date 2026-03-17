@@ -1,0 +1,43 @@
+---
+title: "Get current user"
+api: "GET /api/v1/me"
+description: "Returns the authenticated user's profile."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">User UUID</ResponseField>
+    <ResponseField name="email" type="string">Email address</ResponseField>
+    <ResponseField name="firstName" type="string | null">First name</ResponseField>
+    <ResponseField name="lastName" type="string | null">Last name</ResponseField>
+    <ResponseField name="profileImagePath" type="string | null">Supabase Storage path for profile image</ResponseField>
+    <ResponseField name="active" type="boolean">Whether the user is active</ResponseField>
+    <ResponseField name="role" type="string | null">`admin` or `client`</ResponseField>
+    <ResponseField name="createdAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="updatedAt" type="string">ISO 8601 timestamp</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "john@agency.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "profileImagePath": "users/550e8400/avatar.jpg",
+    "active": true,
+    "role": "admin",
+    "createdAt": "2025-01-15T10:30:00.000Z",
+    "updatedAt": "2025-03-10T14:20:00.000Z"
+  }
+}
+```
+</ResponseExample>

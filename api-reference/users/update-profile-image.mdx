@@ -1,0 +1,45 @@
+---
+title: "Update profile image"
+api: "PATCH /api/v1/me/profile-image"
+description: "Updates the authenticated user's profile image path."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Request body
+
+<ParamField body="path" type="string" required>
+  Relative path within the Supabase Storage bucket. Must not be a full URL or start with `/`. The `profile-images/` prefix is automatically stripped if present.
+</ParamField>
+
+<RequestExample>
+```json
+{
+  "path": "users/550e8400/avatar.jpg"
+}
+```
+</RequestExample>
+
+## Response
+
+Returns the updated user profile.
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "john@agency.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "profileImagePath": "users/550e8400/avatar.jpg",
+    "active": true,
+    "role": "admin",
+    "createdAt": "2025-01-15T10:30:00.000Z",
+    "updatedAt": "2025-03-10T14:20:00.000Z"
+  }
+}
+```
+</ResponseExample>

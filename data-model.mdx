@@ -1,0 +1,184 @@
+---
+title: "Data model"
+description: "Overview of BugSense's database tables, relationships, and enums."
+---
+
+## Entity relationship overview
+
+```
+auth.users (Supabase)
+  ├── users_data          (1:1 profile info)
+  ├── user_roles          (1:1 role assignment)
+  ├── linear_connections  (1:1 OAuth tokens)
+  └── projects            (1:N as team lead or creator)
+        ├── project_clients   (N:M clients per project)
+        ├── issues            (1:N bugs)
+        │     └── issue_comments  (1:N comments)
+        └── weekly_reports    (1:N reports)
+```
+
+## Tables
+
+### `users_data`
+
+Profile information for each user.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | References `auth.users.id` |
+| `first_name` | text | User's first name |
+| `last_name` | text | User's last name |
+| `email` | text (unique) | Email address |
+| `profile_image_path` | text | Path in Supabase Storage |
+| `slack_user_id` | text | Linked Slack user ID |
+| `active` | boolean | Whether the user is active |
+| `created_at` | timestamptz | Record creation time |
+| `updated_at` | timestamptz | Last update time |
+
+### `user_roles`
+
+One role per user.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `user_id` | UUID (PK) | References `auth.users.id` |
+| `user_role` | enum | `admin` or `client` |
+
+### `projects`
+
+Each project maps to a Linear project and has an assigned team lead.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Project identifier |
+| `linear_project_id` | text (unique) | Linked Linear project ID |
+| `linear_project_name` | text | Linear project display name |
+| `linear_team_id` | text | Linear team ID |
+| `team_lead_user_id` | UUID (FK) | Assigned team lead |
+| `created_by` | UUID (FK) | Admin who created the project |
+| `linear_project_url` | text | Direct link to Linear project |
+| `slack_channel_id` | text | Slack channel for notifications |
+| `created_at` | timestamptz | Record creation time |
+| `updated_at` | timestamptz | Last update time |
+
+### `project_clients`
+
+Associates clients with projects. Each client belongs to exactly one project.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `project_id` | UUID (PK, FK) | The project |
+| `client_user_id` | UUID (PK, FK, unique) | The client user |
+| `added_by` | UUID (FK) | Admin who added the client |
+| `created_at` | timestamptz | When the client was added |
+
+### `issues`
+
+Bug reports submitted by clients, synced with Linear.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Issue identifier |
+| `title` | text | Bug title |
+| `description` | text | Bug description (may include SDK payload) |
+| `platform` | enum | `web`, `testflight`, `android`, or `figma` |
+| `environment` | enum | `development`, `staging`, or `production` |
+| `app_version` | text | Application version |
+| `project_id` | UUID (FK) | Parent project |
+| `linear_task_id` | text | Linked Linear issue ID |
+| `linear_status` | text | Current status from Linear |
+| `linear_priority` | integer | Priority level from Linear |
+| `linear_assignee_name` | text | Assignee name from Linear |
+| `linear_url` | text | Direct link to Linear issue |
+| `linear_ticket_number` | text | Linear ticket identifier (e.g. `BUG-42`) |
+| `linear_labels` | text[] | Labels from Linear |
+| `slack_notified_at` | timestamptz | When Slack notification was sent |
+| `archived_at` | timestamptz | When the issue was archived |
+| `created_by` | UUID (FK) | User who created the issue |
+| `created_at` | timestamptz | Record creation time |
+| `updated_at` | timestamptz | Last update time |
+
+### `issue_comments`
+
+Comments on issues, synced with Linear comments.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Comment identifier |
+| `issue_id` | UUID (FK) | Parent issue |
+| `parent_comment_id` | UUID (FK, self) | Parent comment (for replies) |
+| `linear_comment_id` | text (unique) | Linked Linear comment ID |
+| `body` | text | Comment text |
+| `author_name` | text | Display name of the author |
+| `author_id` | text | Author identifier |
+| `edited` | boolean | Whether the comment has been edited |
+| `email_notified_at` | timestamptz | When email notification was sent |
+| `created_at` | timestamptz | Record creation time |
+| `updated_at` | timestamptz | Last update time |
+
+### `weekly_reports`
+
+AI-generated weekly progress reports per project.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Report identifier |
+| `project_id` | UUID (FK) | Parent project |
+| `status` | enum | `draft` or `approved` |
+| `period_start` | timestamptz | Report period start |
+| `period_end_exclusive` | timestamptz | Report period end (exclusive) |
+| `report_period_label` | text | Human-readable period label |
+| `headline` | text | Summary headline |
+| `summary` | text | Narrative summary |
+| `highlights` | text[] | Key accomplishments |
+| `risks` | text[] | Identified risks |
+| `next_steps` | text[] | Planned next actions |
+| `metrics_opened` | integer | Issues opened in period |
+| `metrics_updated` | integer | Issues updated in period |
+| `metrics_resolved` | integer | Issues resolved in period |
+| `metrics_active` | integer | Currently active issues |
+| `metrics_comments` | integer | Comments added in period |
+| `metrics_duplicates` | integer | Duplicates detected |
+| `top_issues` | jsonb | Array of top issues with details |
+| `llm_model` | text | AI model used for generation |
+| `generated_at` | timestamptz | When the report was generated |
+| `created_at` | timestamptz | Record creation time |
+| `updated_at` | timestamptz | Last update time |
+
+### `linear_connections`
+
+OAuth tokens for Linear integration.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `user_id` | UUID (PK, FK) | The admin user |
+| `linear_user_id` | text | Linear user identifier |
+| `linear_user_email` | text | Linear user email |
+| `access_token` | text | OAuth access token |
+| `token_type` | text | Token type |
+| `scope` | text | Granted scopes |
+| `access_token_expires_at` | timestamptz | Token expiry |
+| `connected_at` | timestamptz | When the connection was established |
+| `updated_at` | timestamptz | Last update time |
+
+### `linear_webhooks`
+
+Registered Linear webhook configurations.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Webhook record identifier |
+| `linear_webhook_id` | text (unique) | Linear webhook ID |
+| `linear_team_id` | text | Team the webhook is registered for |
+| `signing_secret` | text | HMAC signing secret |
+| `enabled` | boolean | Whether the webhook is active |
+| `created_at` | timestamptz | Record creation time |
+
+## Enums
+
+| Enum | Values |
+|------|--------|
+| `user_role` | `admin`, `client` |
+| `issue_platform` | `web`, `testflight`, `android`, `figma` |
+| `issue_environment` | `development`, `staging`, `production` |
+| `report_status` | `draft`, `approved` |

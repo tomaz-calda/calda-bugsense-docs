@@ -1,0 +1,51 @@
+---
+title: "List my projects"
+api: "GET /api/v1/projects/my"
+description: "Returns projects the authenticated user has access to."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Behavior
+
+- **Admin users** see projects where they are the team lead.
+- **Client users** see the project they are assigned to.
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of project objects. Same shape as [List all projects](/api-reference/projects/list-projects), filtered by the user's access.
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "linearProjectId": "proj_abc123",
+      "linearProjectName": "Client App Redesign",
+      "linearTeamId": "team_xyz",
+      "teamLeadUserId": "550e8400-e29b-41d4-a716-446655440000",
+      "teamLeadEmail": "john@agency.com",
+      "linearProjectUrl": "https://linear.app/team/project/proj_abc123",
+      "slackChannelId": "C01ABCDEF",
+      "createdBy": "550e8400-e29b-41d4-a716-446655440000",
+      "createdAt": "2025-03-10T14:20:00.000Z",
+      "updatedAt": "2025-03-10T14:20:00.000Z",
+      "clients": [
+        {
+          "userId": "660e9500-f30c-52e5-b827-557766550000",
+          "email": "client@company.com",
+          "firstName": "Alice",
+          "lastName": "Johnson",
+          "addedAt": "2025-03-10T14:20:00.000Z"
+        }
+      ]
+    }
+  ]
+}
+```
+</ResponseExample>

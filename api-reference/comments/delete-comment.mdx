@@ -1,0 +1,35 @@
+---
+title: "Delete comment"
+api: "DELETE /api/v1/projects/{projectId}/issues/{issueId}/comments/{commentId}"
+description: "Deletes a comment. Also removes it from Linear."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>
+  UUID of the project.
+</ParamField>
+
+<ParamField path="issueId" type="string" required>
+  UUID of the issue.
+</ParamField>
+
+<ParamField path="commentId" type="string" required>
+  UUID of the comment to delete.
+</ParamField>
+
+## Response
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "deleted": true
+  }
+}
+```
+</ResponseExample>

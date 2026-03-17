@@ -1,0 +1,33 @@
+---
+title: "Disconnect Linear"
+api: "DELETE /api/v1/integrations/linear/connection"
+description: "Removes the Linear connection for the current admin. Admin only."
+---
+
+## Authentication
+
+<Icon icon="shield" /> Requires **admin** role
+
+## Behavior
+
+Disconnecting Linear:
+
+1. Removes the stored OAuth access token
+2. Deregisters Linear webhooks for the team
+3. Existing issues and comments remain in the database but will no longer sync
+
+## Response
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "disconnected": true
+  }
+}
+```
+</ResponseExample>
+
+<Warning>
+  Disconnecting Linear stops all bidirectional syncing. Issues created after disconnection will not appear in Linear, and Linear updates will not be reflected in BugSense.
+</Warning>

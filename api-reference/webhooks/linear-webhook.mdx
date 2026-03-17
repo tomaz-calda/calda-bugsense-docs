@@ -1,0 +1,41 @@
+---
+title: "Linear webhook"
+api: "POST /api/v1/webhooks/linear"
+description: "Receives webhook events from Linear for issue, comment, and attachment syncing."
+---
+
+## Authentication
+
+This endpoint uses **HMAC-SHA256 signature verification** instead of JWT auth. Linear signs each payload with the team's webhook signing secret.
+
+The `linear-signature` header must be present and valid.
+
+## Supported events
+
+| Resource | Actions | Effect |
+|----------|---------|--------|
+| **Issue** | created, updated, removed | Creates, updates, or archives the local issue record |
+| **Comment** | created, updated, removed | Creates, updates, or deletes the local comment |
+| **Attachment** | created | Stores attachment reference on the issue |
+| **Project** | updated | Syncs project name changes |
+
+## Request headers
+
+| Header | Description |
+|--------|-------------|
+| `linear-signature` | HMAC-SHA256 signature of the raw request body |
+| `content-type` | `application/json` |
+
+## Error responses
+
+| Code | Meaning |
+|------|---------|
+| `200` | Webhook processed successfully |
+| `401` | Signature verification failed |
+| `500` | Internal processing error |
+
+## Notes
+
+- Webhooks are automatically registered when a Linear workspace is connected via OAuth.
+- Each team has its own signing secret, stored in the `linear_webhooks` table.
+- The webhook processes events asynchronously — a `200` response is returned immediately after verification.

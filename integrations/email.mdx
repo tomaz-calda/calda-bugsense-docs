@@ -1,0 +1,32 @@
+---
+title: "Email (Brevo)"
+description: "How BugSense sends transactional emails via Brevo for invites, comment digests, and reports."
+---
+
+## Overview
+
+BugSense uses [Brevo](https://www.brevo.com) (formerly Sendinblue) as its transactional email provider. Emails are sent for user invitations, comment digests, and weekly report notifications.
+
+## Email types
+
+### Invitation emails
+
+When an admin invites a new team lead, Supabase Auth sends the initial invite email. Additional onboarding or welcome emails may be sent through Brevo.
+
+### Comment digest emails
+
+A scheduled job (`POST /api/v1/jobs/email-comments-digest`) sends digest emails to clients summarizing new comments on their issues since the last notification.
+
+This ensures clients who aren't actively checking BugSense still stay informed about issue progress.
+
+### Weekly report emails
+
+When a weekly report is approved, BugSense sends an email to project clients with a summary and a link to view the full report.
+
+## Configuration
+
+| Variable | Description |
+|----------|-------------|
+| `BREVO_API_KEY` | Your Brevo API key |
+| `BREVO_DEFAULT_SENDER_EMAIL` | Sender email (e.g. `noreply@thecalda.com`) |
+| `BREVO_DEFAULT_SENDER_NAME` | Sender display name (e.g. `BugSense`) |

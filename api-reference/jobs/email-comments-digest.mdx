@@ -1,0 +1,36 @@
+---
+title: "Email comments digest"
+api: "POST /api/v1/jobs/email-comments-digest"
+description: "Sends comment digest emails to clients. Triggered by cron."
+---
+
+## Authentication
+
+Requires the `x-cron-secret` header matching the `CRON_SECRET` environment variable.
+
+```
+x-cron-secret: <your_cron_secret>
+```
+
+## Behavior
+
+1. Finds all comments that haven't been email-notified yet (`email_notified_at` is null)
+2. Groups comments by issue and project
+3. Sends digest emails to project clients via Brevo
+4. Updates `email_notified_at` on each notified comment
+
+## Response
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "processed": true
+  }
+}
+```
+</ResponseExample>
+
+## Scheduling
+
+Typically triggered by a Supabase `pg_cron` job on a regular interval (e.g., every 30 minutes or hourly).

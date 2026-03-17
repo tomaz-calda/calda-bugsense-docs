@@ -1,0 +1,167 @@
+---
+title: "Architecture"
+description: "Technical overview of BugSense's stack, project structure, and module organization."
+---
+
+## System overview
+
+BugSense consists of four repositories that work together:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Client apps                       │
+│                                                     │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │
+│  │  Dashboard   │  │   Web SDK   │  │ Flutter SDK │ │
+│  │  (React)     │  │ (@calda/    │  │ (calda_bug_ │ │
+│  │              │  │  bug-sdk)   │  │  sdk)       │ │
+│  └──────┬───────┘  └──────┬──────┘  └──────┬──────┘ │
+└─────────┼─────────────────┼────────────────┼────────┘
+          │                 │                │
+          │  REST API + Supabase Auth (JWT)  │
+          │                 │                │
+┌─────────▼─────────────────▼────────────────▼────────┐
+│                    Backend (Hono)                    │
+│  Routes · Services · Middleware · Cron jobs          │
+├─────────────────────────────────────────────────────┤
+│  PostgreSQL (Supabase) · Supabase Storage           │
+└──────────┬──────────────┬──────────────┬────────────┘
+           │              │              │
+     ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
+     │   Linear   │ │   Slack   │ │  OpenAI   │
+     │  (issues)  │ │  (notify) │ │ (reports) │
+     └───────────┘ └───────────┘ └───────────┘
+```
+
+- **Dashboard** — React SPA for admins and clients to manage projects, issues, and reports.
+- **Web SDK** — npm package that adds a floating bug-report widget to any web app.
+- **Flutter SDK** — Dart package that adds a floating bug-report widget to Flutter apps.
+- **Backend** — Hono API server handling auth, data, Linear sync, and AI report generation.
+
+## Tech stack
+
+### Backend
+
+| Layer | Technology |
+|-------|------------|
+| **Language** | TypeScript |
+| **Runtime** | Node.js |
+| **Framework** | [Hono](https://hono.dev) 4.x |
+| **Database** | PostgreSQL via [Supabase](https://supabase.com) |
+| **ORM** | [Drizzle ORM](https://orm.drizzle.team) |
+| **Auth** | Supabase Auth (JWT) |
+| **Email** | [Brevo](https://www.brevo.com) (Sendinblue) |
+| **Issue tracking** | [Linear](https://linear.app) API + OAuth |
+| **Notifications** | [Slack](https://api.slack.com) Bot API |
+| **AI** | OpenAI (GPT-4o-mini) |
+| **Storage** | Supabase Storage |
+
+### Dashboard
+
+| Layer | Technology |
+|-------|------------|
+| **Framework** | React 19 + Vite 7 |
+| **Routing** | React Router 7 |
+| **Styling** | Tailwind CSS 4 + shadcn/ui |
+| **Server state** | TanStack Query 5 |
+| **Rich text** | Tiptap |
+| **Auth** | Supabase Auth (JWT via REST) |
+
+### SDKs
+
+| SDK | Platform | Package |
+|-----|----------|---------|
+| **Web** | Browser / Next.js | `@calda/bug-sdk` (TypeScript) |
+| **Flutter** | iOS / Android / Web | `calda_bug_sdk` (Dart) |
+
+Both SDKs share the same report payload schema and capture similar telemetry (logs, errors, network, navigation, breadcrumbs).
+
+## Project structure
+
+```
+calda-bugsense-backend/
+├── app/
+│   ├── src/
+│   │   ├── app.ts                 # Hono app setup, CORS, route mounting
+│   │   ├── index.ts               # Entry point, starts HTTP server
+│   │   ├── routes/index.ts        # Central route registration
+│   │   ├── db/
+│   │   │   ├── client.ts          # Drizzle database client
+│   │   │   ├── transaction.ts     # Transaction helper
+│   │   │   └── schema/            # Drizzle table definitions
+│   │   ├── lib/
+│   │   │   ├── env.ts             # Zod-validated environment config
+│   │   │   ├── http-error.ts      # HTTP error classes
+│   │   │   └── supabase-admin.ts  # Supabase admin client
+│   │   ├── middleware/
+│   │   │   ├── auth.ts            # JWT validation and role checks
+│   │   │   └── error-handler.ts   # Global error handler
+│   │   ├── modules/               # Feature modules
+│   │   │   ├── users/
+│   │   │   ├── projects/
+│   │   │   ├── issues/
+│   │   │   ├── issue-comments/
+│   │   │   ├── reports/
+│   │   │   ├── integrations/linear/
+│   │   │   ├── webhooks/linear/
+│   │   │   ├── webhooks/slack/
+│   │   │   ├── jobs/
+│   │   │   ├── chatgpt/
+│   │   │   ├── email/
+│   │   │   └── slack/
+│   │   └── jobs/                  # Cron job implementations
+│   ├── drizzle.config.ts
+│   ├── package.json
+│   └── .env.example
+├── supabase/
+│   ├── config.toml                # Local Supabase config
+│   ├── migrations/                # SQL migrations
+│   └── seed.sql                   # Seed data
+└── api/                           # Bruno HTTP test files
+```
+
+## Module pattern
+
+Each feature module follows a consistent structure:
+
+```
+modules/<feature>/
+├── <feature>.handler.ts   # Route definitions (Hono handlers)
+├── <feature>.service.ts   # Business logic
+└── <feature>.types.ts     # Zod schemas and TypeScript types
+```
+
+- **Handler** — Defines HTTP routes, parses and validates input, calls the service layer, and returns responses.
+- **Service** — Contains business logic, database queries, and external API calls. Never touches HTTP request/response objects directly.
+- **Types** — Zod validation schemas for request payloads and TypeScript type definitions.
+
+## Request lifecycle
+
+```
+Client Request
+  → Hono Router
+    → Middleware (auth, error handler)
+      → Handler (parse + validate input)
+        → Service (business logic + DB)
+          → External APIs (Linear, Slack, Brevo, OpenAI)
+        ← Response JSON
+```
+
+## Key integrations flow
+
+### Linear sync
+
+BugSense maintains bidirectional sync with Linear:
+
+1. **Outbound** — When a client creates an issue or comment in BugSense, it's pushed to Linear via the Linear API.
+2. **Inbound** — Linear sends webhook events (issue updates, new comments, attachments) to `/api/v1/webhooks/linear`, which updates the local database.
+
+### Cron jobs
+
+Scheduled tasks run via Supabase `pg_cron` and call internal API endpoints with a shared `CRON_SECRET`:
+
+| Job | Schedule | Endpoint |
+|-----|----------|----------|
+| Weekly client report | Mondays 09:00 UTC | `POST /api/v1/jobs/weekly-client-report` |
+| Slack issue digest | Configurable | `POST /api/v1/jobs/slack-issue-digest` |
+| Email comments digest | Configurable | `POST /api/v1/jobs/email-comments-digest` |

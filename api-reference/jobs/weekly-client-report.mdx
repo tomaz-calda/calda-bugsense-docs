@@ -1,0 +1,51 @@
+---
+title: "Weekly client report"
+api: "POST /api/v1/jobs/weekly-client-report"
+description: "Generates AI-powered weekly reports for all active projects. Triggered by cron."
+---
+
+## Authentication
+
+Requires the `x-cron-secret` header matching the `CRON_SECRET` environment variable.
+
+```
+x-cron-secret: <your_cron_secret>
+```
+
+## Behavior
+
+1. Iterates over all active projects
+2. Gathers metrics for the past week (opened, updated, resolved, active issues, comments, duplicates)
+3. Identifies top issues by activity
+4. Sends structured data to OpenAI to generate narrative content (headline, summary, highlights, risks, next steps)
+5. Creates a `weekly_reports` record in `draft` status
+6. Notifies team leads via Slack that a new report is ready for review
+
+Reports are created as drafts. An admin must [approve the report](/api-reference/reports/approve-report) before it is sent to clients.
+
+## Response
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "processed": true
+  }
+}
+```
+</ResponseExample>
+
+## Scheduling
+
+Typically runs every Monday at 09:00 UTC via Supabase `pg_cron`:
+
+```sql
+SELECT cron.schedule(
+  'weekly-client-report',
+  '0 9 * * 1',
+  $$ SELECT net.http_post(
+    'https://<your-domain>/api/v1/jobs/weekly-client-report',
+    headers := '{"x-cron-secret": "<secret>"}'::jsonb
+  ) $$
+);
+```

@@ -1,0 +1,270 @@
+---
+title: "Flutter SDK"
+description: "Add in-app bug reporting to any Flutter application with the calda_bug_sdk package."
+---
+
+## Overview
+
+The Flutter SDK (`calda_bug_sdk`) adds a floating bug-report button to your Flutter app. It captures debug prints, Flutter errors, network requests (via Dio), navigation events, and user tap breadcrumbs. Users can take screenshots, record their screen (up to 30 seconds), and submit detailed bug reports directly to BugSense.
+
+## Installation
+
+Add the dependency to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  calda_bug_sdk:
+    git:
+      url: https://github.com/your-org/flutter-bug-report-sdk.git
+```
+
+Then run:
+
+```bash
+flutter pub get
+```
+
+**Requirements:** Dart SDK `>=3.3.0 <4.0.0`
+
+## Quick start
+
+### 1. Initialize the SDK
+
+```dart
+import 'package:calda_bug_sdk/calda_bug_sdk.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await ensureSupabaseInitialized();
+
+  CaldaBug.init(CaldaBugConfig(
+    endpoint: Uri.parse('https://calda-bugsense-backend.onrender.com/api/v1/issues'),
+    apiKey: 'YOUR_PROJECT_API_KEY',
+    env: 'staging',
+    release: 'myapp@1.0.0+1',
+    app: AppInfo(name: 'My App', version: '1.0.0', build: '1'),
+    session: SessionInfo(sessionId: 'sess_${DateTime.now().millisecondsSinceEpoch}'),
+  ));
+
+  runApp(const MyApp());
+}
+```
+
+### 2. Wire up the widget tree
+
+Wrap your app with the breadcrumb scope, screenshot boundary, and floating button:
+
+```dart
+final _repaintKey = GlobalKey();
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      navigatorObservers: [CaldaBug.navigatorObserver()],
+      home: CaldaBugBreadcrumbScope(
+        child: CaldaBugBoundary(
+          repaintKey: _repaintKey,
+          child: Stack(
+            children: [
+              const MyHomePage(),
+              CaldaBugFloatingButton(
+                repaintKey: _repaintKey,
+                recorder: createCaldaScreenRecordRecorder(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### 3. Add Dio network capture (optional)
+
+```dart
+final dio = Dio();
+dio.interceptors.add(
+  CaldaBug.dioInterceptor(redactUrl: (url) => url.split('?').first),
+);
+```
+
+## Configuration
+
+```dart
+CaldaBugConfig(
+  endpoint: Uri,              // Backend ingest URL (required)
+  apiKey: String,             // Fallback auth key (required)
+  env: String,                // "staging" | "production" (required)
+  release: String,            // e.g. "myapp@1.0.0+1" (required)
+  app: AppInfo,               // App metadata (required)
+  session: SessionInfo,       // Session info (required)
+
+  // Optional
+  sdkVersion: '0.1.0',
+  schemaVersion: '1.0.0',
+  maxEvents: 800,                    // Ring buffer size
+  uploadTimeout: Duration(seconds: 60),
+  enableFloatingButton: true,
+  enableDebugPrintCapture: true,     // Capture debugPrint output
+  enableFlutterErrorCapture: true,   // Capture FlutterError + PlatformDispatcher errors
+  enableNetworkCapture: true,        // Dio interceptor
+  enableBreadcrumbCapture: true,     // Tap breadcrumbs
+  redaction: RedactionConfig(),      // Sensitive data redaction rules
+)
+```
+
+## What the SDK captures
+
+| Category | Source | Event type |
+|----------|--------|------------|
+| **Debug prints** | `debugPrint` interception | `log` |
+| **Flutter errors** | `FlutterError.onError`, `PlatformDispatcher.onError` | `err` |
+| **Navigation** | `CaldaBugNavigatorObserver` on `MaterialApp` | `nav` |
+| **Network** | Dio interceptor (method, URL, status, duration) | `net` |
+| **Breadcrumbs** | `CaldaBugBreadcrumbScope` tap listener | `breadcrumb` |
+
+All events are stored in a ring buffer (default capacity: 800).
+
+## Widgets
+
+### CaldaBugFloatingButton
+
+The main entry point for users. Positioned as a floating action button (typically in a `Stack`).
+
+**Flow:**
+1. Tap → auth check. If not logged in, shows login sheet.
+2. Menu appears with options:
+   - **Take a screenshot and report** — captures the `RepaintBoundary` and opens the report sheet.
+   - **Start recording (max 30s)** — starts screen recording; button turns red; tap again to stop.
+   - **Settings** — manage user, log out.
+3. Report sheet opens with title, rich-text description, platform/environment selectors, and media preview.
+
+### CaldaBugBoundary
+
+Wraps your app content in a `RepaintBoundary` used for screenshot capture. Must share the same `GlobalKey` as the floating button.
+
+```dart
+CaldaBugBoundary(
+  repaintKey: _repaintKey,
+  child: YourAppContent(),
+)
+```
+
+### CaldaBugBreadcrumbScope
+
+Wraps the widget tree with a transparent `Listener` that records tap events as breadcrumb data (widget type, route).
+
+```dart
+CaldaBugBreadcrumbScope(
+  child: YourAppContent(),
+)
+```
+
+## Custom events
+
+Add events to the buffer at any time:
+
+```dart
+CaldaBug.addEvent(BugEvent(
+  type: 'custom',
+  data: {'action': 'purchase', 'amount': 29.99},
+));
+```
+
+## State snapshots
+
+Register a function that returns your app's current state. The snapshot is included in every report:
+
+```dart
+CaldaBug.setStateSnapshotProvider(() => {
+  'currentScreen': 'checkout',
+  'cartItems': 3,
+});
+```
+
+## Programmatic API
+
+| Method | Description |
+|--------|-------------|
+| `CaldaBug.init(config)` | Initialize the SDK |
+| `CaldaBug.addEvent(event)` | Add a custom event to the buffer |
+| `CaldaBug.getLastLogLines({limit})` | Get recent log lines (default: 500) |
+| `CaldaBug.getReproductionSummary()` | Text summary from captured events |
+| `CaldaBug.navigatorObserver()` | Returns a `NavigatorObserver` for route tracking |
+| `CaldaBug.dioInterceptor(redactUrl?)` | Returns a Dio interceptor for network capture |
+| `CaldaBug.setStateSnapshotProvider(fn)` | Register an app-state snapshot function |
+| `CaldaBug.report(...)` | Manually build and upload a report |
+
+## Report payload
+
+When a report is submitted, the SDK sends a `multipart/form-data` request to the configured `endpoint`:
+
+| Part | Content |
+|------|---------|
+| `payload.json.gz` | Gzipped JSON with SDK info, device info, session, events, reproduction summary, user message |
+| `screenshot.png` | Screenshot of the app (if taken) |
+| `attachment_0.mp4` | Screen recording (if recorded) |
+| `attachment_N.*` | Additional attachments |
+
+The JSON payload follows the same schema as the Web SDK:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "sdk": { "name": "calda_bug_sdk", "version": "0.1.0", "platform": "flutter" },
+  "timestamp": "2026-03-17T10:00:00Z",
+  "env": "staging",
+  "release": "myapp@1.0.0+1",
+  "app": { "name": "My App", "version": "1.0.0", "build": "1" },
+  "device": { "platform": "android", "os": "Android 14", "model": "Pixel 8", ... },
+  "session": { "sessionId": "..." },
+  "userMessage": "App freezes when scrolling",
+  "reproductionSummary": "Navigated to /feed, scrolled down, ...",
+  "events": [ ... ],
+  "attachments": { "screenshot": true, "count": 1 }
+}
+```
+
+## Device info
+
+The SDK automatically collects device metadata using `device_info_plus` and `package_info_plus`:
+
+- Platform, OS, OS version
+- Device model and manufacturer
+- App version, build number, package ID
+- Screen size, pixel ratio
+- Locale, timezone, color scheme (light/dark)
+
+## Redaction
+
+Configure redaction rules to prevent sensitive data from appearing in reports:
+
+```dart
+CaldaBugConfig(
+  redaction: RedactionConfig(
+    keyBlocklist: ['authorization', 'password', 'token'],
+    queryBlocklist: ['token', 'auth', 'api_key'],
+    urlBlocklist: [RegExp(r'/auth/')],
+    replacement: '[REDACTED]',
+  ),
+)
+```
+
+Default redaction strips common auth headers and tokens automatically.
+
+## Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `dio` | Network interceptor |
+| `device_info_plus` | Device metadata |
+| `package_info_plus` | App version info |
+| `screen_record_plus` | Screen recording |
+| `supabase_flutter` | User authentication |
+| `flutter_markdown` | Markdown preview in report sheet |
+| `url_launcher` | External links |

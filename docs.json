@@ -1,122 +1,133 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "BugSense",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#FF3D00",
+    "light": "#FF6B33",
+    "dark": "#080808"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon-calda.svg",
+  "icons": {
+    "library": "lucide"
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
             "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
+            "pages": ["index", "quickstart", "architecture"]
           },
           {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
+            "group": "Core concepts",
+            "pages": ["authentication", "data-model"]
           },
           {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
+            "group": "Client apps",
+            "pages": ["dashboard", "sdks/web", "sdks/flutter"]
           },
           {
-            "group": "AI tools",
+            "group": "Integrations",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "integrations/linear",
+              "integrations/slack",
+              "integrations/email",
+              "integrations/openai"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Overview",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Users",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/users/get-me",
+              "api-reference/users/update-me",
+              "api-reference/users/update-profile-image",
+              "api-reference/users/invite-team-lead"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Projects",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/projects/create-project",
+              "api-reference/projects/list-projects",
+              "api-reference/projects/list-my-projects"
+            ]
+          },
+          {
+            "group": "Issues",
+            "pages": [
+              "api-reference/issues/list-issues",
+              "api-reference/issues/create-issue"
+            ]
+          },
+          {
+            "group": "Comments",
+            "pages": [
+              "api-reference/comments/list-comments",
+              "api-reference/comments/create-comment",
+              "api-reference/comments/create-reply",
+              "api-reference/comments/update-comment",
+              "api-reference/comments/delete-comment"
+            ]
+          },
+          {
+            "group": "Weekly reports",
+            "pages": [
+              "api-reference/reports/list-reports",
+              "api-reference/reports/get-report",
+              "api-reference/reports/update-report",
+              "api-reference/reports/approve-report"
+            ]
+          },
+          {
+            "group": "Linear integration",
+            "pages": [
+              "api-reference/integrations/linear-connect",
+              "api-reference/integrations/linear-callback",
+              "api-reference/integrations/linear-connection",
+              "api-reference/integrations/linear-teams",
+              "api-reference/integrations/linear-projects",
+              "api-reference/integrations/linear-disconnect"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "api-reference/webhooks/linear-webhook",
+              "api-reference/webhooks/slack-interactive"
+            ]
+          },
+          {
+            "group": "Jobs",
+            "pages": [
+              "api-reference/jobs/slack-issue-digest",
+              "api-reference/jobs/email-comments-digest",
+              "api-reference/jobs/weekly-client-report"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/logo-light.svg",
+    "dark": "/logo/logo-dark.svg"
   },
   "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "label": "Open BugSense",
+      "href": "https://calda-bugsense-frontend.vercel.app/"
     }
   }
 }

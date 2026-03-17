@@ -1,0 +1,90 @@
+---
+title: "Update report"
+api: "PUT /api/v1/projects/{projectId}/reports/{reportId}"
+description: "Updates a weekly report's narrative content before approval."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>
+  UUID of the project.
+</ParamField>
+
+<ParamField path="reportId" type="string" required>
+  UUID of the report to update.
+</ParamField>
+
+## Request body
+
+All fields are optional, but at least one must be provided.
+
+<ParamField body="headline" type="string" optional>
+  Updated headline.
+</ParamField>
+
+<ParamField body="summary" type="string" optional>
+  Updated narrative summary.
+</ParamField>
+
+<ParamField body="highlights" type="string[]" optional>
+  Updated highlights (at least one item if provided).
+</ParamField>
+
+<ParamField body="risks" type="string[]" optional>
+  Updated risks (at least one item if provided).
+</ParamField>
+
+<ParamField body="nextSteps" type="string[]" optional>
+  Updated next steps (at least one item if provided).
+</ParamField>
+
+<RequestExample>
+```json
+{
+  "headline": "Solid week with key bugs resolved",
+  "highlights": [
+    "Resolved the Safari login bug affecting 30% of users",
+    "Reduced average response time to under 24 hours"
+  ]
+}
+```
+</RequestExample>
+
+## Response
+
+Returns the updated report object.
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "id": "e5f6a7b8-9012-3456-ef01-345678901234",
+    "projectId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "status": "draft",
+    "headline": "Solid week with key bugs resolved",
+    "summary": "This week saw 5 new issues reported and 3 resolved...",
+    "highlights": [
+      "Resolved the Safari login bug affecting 30% of users",
+      "Reduced average response time to under 24 hours"
+    ],
+    "risks": ["Android build stability needs attention"],
+    "nextSteps": ["Prioritize remaining Android issues"],
+    "metricsOpened": 5,
+    "metricsUpdated": 8,
+    "metricsResolved": 3,
+    "metricsActive": 12,
+    "metricsComments": 15,
+    "metricsDuplicates": 1,
+    "topIssues": [],
+    "llmModel": "gpt-4o-mini",
+    "generatedAt": "2025-03-10T09:00:00.000Z",
+    "createdAt": "2025-03-10T09:00:00.000Z",
+    "updatedAt": "2025-03-10T15:00:00.000Z"
+  }
+}
+```
+</ResponseExample>

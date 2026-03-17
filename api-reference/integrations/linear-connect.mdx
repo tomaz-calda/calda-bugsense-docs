@@ -1,0 +1,33 @@
+---
+title: "Connect Linear"
+api: "GET /api/v1/integrations/linear/connect"
+description: "Returns the OAuth authorization URL to connect a Linear workspace. Admin only."
+---
+
+## Authentication
+
+<Icon icon="shield" /> Requires **admin** role
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="authorizationUrl" type="string">
+      Linear OAuth consent URL. Redirect the user to this URL to begin the authorization flow.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "authorizationUrl": "https://linear.app/oauth/authorize?client_id=...&redirect_uri=...&state=..."
+  }
+}
+```
+</ResponseExample>
+
+## Flow
+
+After the user authorizes in Linear, they are redirected back to the [callback endpoint](/api-reference/integrations/linear-callback) with an authorization code.

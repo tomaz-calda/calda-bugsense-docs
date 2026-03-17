@@ -1,0 +1,153 @@
+---
+title: "Create issue"
+api: "POST /api/v1/projects/{projectId}/issues"
+description: "Creates a new bug report. Supports JSON and multipart/form-data for SDK submissions."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>
+  UUID of the project.
+</ParamField>
+
+## Request body (JSON)
+
+Use `Content-Type: application/json` for simple bug reports from the web UI.
+
+<ParamField body="title" type="string" required>
+  Bug title (1–200 characters).
+</ParamField>
+
+<ParamField body="platform" type="string" required>
+  Platform where the bug occurred. One of: `web`, `testflight`, `android`, `figma`.
+</ParamField>
+
+<ParamField body="environment" type="string" required>
+  Environment where the bug occurred. One of: `development`, `staging`, `production`.
+</ParamField>
+
+<ParamField body="appVersion" type="string" required>
+  Application version (1–100 characters).
+</ParamField>
+
+<ParamField body="description" type="string" required>
+  Bug description (1–20,000 characters).
+</ParamField>
+
+<RequestExample>
+```json
+{
+  "title": "Login button not responding on Safari",
+  "platform": "web",
+  "environment": "production",
+  "appVersion": "2.1.0",
+  "description": "When clicking the login button on Safari 17, nothing happens. Console shows no errors."
+}
+```
+</RequestExample>
+
+## Request body (multipart/form-data)
+
+Use `Content-Type: multipart/form-data` for SDK submissions that include attachments and a compressed payload.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `payload.json.gz` | file | Gzipped JSON SDK payload (see schema below) |
+| `title` | string | Bug title (optional if SDK payload provides one) |
+| `platform` | string | Platform (optional, derived from SDK payload) |
+| `environment` | string | Environment (optional, derived from SDK payload) |
+| `appVersion` | string | App version (optional, derived from SDK payload) |
+| `description` | string | Description (optional, derived from SDK payload) |
+| attachments | file(s) | Up to 10 files, max 25 MB each |
+
+### SDK payload schema (`payload.json.gz`)
+
+The SDK payload is a gzipped JSON object with this structure:
+
+```json
+{
+  "sdk": {
+    "name": "bugsense-ios",
+    "version": "1.0.0",
+    "platform": "ios"
+  },
+  "timestamp": "2025-03-12T09:15:00.000Z",
+  "env": "production",
+  "release": "2.1.0",
+  "app": {
+    "name": "MyApp",
+    "version": "2.1.0",
+    "build": "142"
+  },
+  "device": {
+    "platform": "ios"
+  },
+  "session": {
+    "id": "session_abc123",
+    "user": {
+      "email": "client@company.com",
+      "name": "Alice Johnson"
+    }
+  },
+  "userMessage": "The login button doesn't work",
+  "reproductionSummary": "1. Open app\n2. Tap login\n3. Nothing happens",
+  "attachments": {
+    "screenshot": true,
+    "count": 1
+  }
+}
+```
+
+### Field resolution
+
+When using multipart requests, fields are resolved with the following priority:
+
+1. Explicit form fields (`title`, `platform`, etc.)
+2. SDK payload data (`userMessage` → title, `device.platform` → platform, `env` → environment, `app.version` → appVersion)
+
+## Response
+
+<ResponseField name="data" type="object">
+  The created issue (same shape as objects in [List issues](/api-reference/issues/list-issues)).
+</ResponseField>
+
+<ResponseField name="warnings" type="object" optional>
+  Present only if some attachments failed to upload.
+
+  <Expandable title="properties">
+    <ResponseField name="attachmentUploadFailures" type="string[]">
+      Filenames that failed to upload.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 201
+{
+  "data": {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "title": "Login button not responding on Safari",
+    "description": "When clicking the login button on Safari 17...",
+    "platform": "web",
+    "environment": "production",
+    "appVersion": "2.1.0",
+    "projectId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "linearTaskId": "LIN-123",
+    "linearStatus": "Triage",
+    "linearPriority": 0,
+    "linearAssigneeName": null,
+    "linearUrl": "https://linear.app/team/issue/BUG-43",
+    "linearTicketNumber": "BUG-43",
+    "linearLabels": ["Client view"],
+    "archivedAt": null,
+    "createdBy": "660e9500-f30c-52e5-b827-557766550000",
+    "createdAt": "2025-03-12T09:15:00.000Z",
+    "updatedAt": "2025-03-12T09:15:00.000Z"
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,47 @@
+---
+title: "Slack issue digest"
+api: "POST /api/v1/jobs/slack-issue-digest"
+description: "Sends pending issue digests to Slack channels. Triggered by cron."
+---
+
+## Authentication
+
+Requires the `x-cron-secret` header matching the `CRON_SECRET` environment variable.
+
+```
+x-cron-secret: <your_cron_secret>
+```
+
+## Behavior
+
+1. Finds all issues that haven't been notified to Slack yet (`slack_notified_at` is null)
+2. Groups issues by project
+3. Sends a digest message to each project's linked Slack channel
+4. Updates `slack_notified_at` on each notified issue
+
+## Response
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "processed": true
+  }
+}
+```
+</ResponseExample>
+
+## Scheduling
+
+Typically triggered by a Supabase `pg_cron` job:
+
+```sql
+SELECT cron.schedule(
+  'slack-issue-digest',
+  '*/15 * * * *',
+  $$ SELECT net.http_post(
+    'https://<your-domain>/api/v1/jobs/slack-issue-digest',
+    headers := '{"x-cron-secret": "<secret>"}'::jsonb
+  ) $$
+);
+```

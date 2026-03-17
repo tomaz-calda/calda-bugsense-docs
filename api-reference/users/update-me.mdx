@@ -1,0 +1,52 @@
+---
+title: "Update profile"
+api: "PATCH /api/v1/me"
+description: "Updates the authenticated user's profile information."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Request body
+
+At least one field is required.
+
+<ParamField body="firstName" type="string" optional>
+  First name (1–100 characters). Pass `null` to clear.
+</ParamField>
+
+<ParamField body="lastName" type="string" optional>
+  Last name (1–100 characters). Pass `null` to clear.
+</ParamField>
+
+<RequestExample>
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe"
+}
+```
+</RequestExample>
+
+## Response
+
+Returns the updated user profile (same shape as [Get current user](/api-reference/users/get-me)).
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "john@agency.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "profileImagePath": null,
+    "active": true,
+    "role": "admin",
+    "createdAt": "2025-01-15T10:30:00.000Z",
+    "updatedAt": "2025-03-10T14:20:00.000Z"
+  }
+}
+```
+</ResponseExample>

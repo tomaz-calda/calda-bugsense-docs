@@ -1,0 +1,33 @@
+---
+title: "Slack interactive"
+api: "POST /api/v1/webhooks/slack/interactive"
+description: "Acknowledges Slack interactivity payloads for link buttons."
+---
+
+## Authentication
+
+No authentication required. This endpoint is called by Slack's platform.
+
+## Purpose
+
+Slack sends an interaction payload every time a user clicks a button in a Slack message, including link buttons. Without a configured interactivity request URL, Slack shows a warning dialog.
+
+This endpoint simply acknowledges the payload with a `200 OK` response so Slack is satisfied. The actual link navigation still happens client-side.
+
+## Response
+
+<ResponseExample>
+```json 200
+{
+  "ok": true
+}
+```
+</ResponseExample>
+
+## Configuration
+
+Set this URL as the **Interactivity Request URL** in your Slack app settings:
+
+```
+https://<your-domain>/api/v1/webhooks/slack/interactive
+```

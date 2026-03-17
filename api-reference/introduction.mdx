@@ -1,33 +1,83 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Reference"
+description: "Complete reference for the BugSense REST API."
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
+All API endpoints are served under:
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+```
+https://<your-domain>/api/v1
+```
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+For local development, this is `http://localhost:8000/api/v1`.
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+Most endpoints require a valid JWT token in the `Authorization` header:
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+Tokens are issued by Supabase Auth. See the [authentication guide](/authentication) for details.
+
+Some endpoints require **admin** role access. These are noted with <Icon icon="shield" /> in the endpoint documentation.
+
+## Response format
+
+All successful responses follow this structure:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "data": { ... }
+}
 ```
+
+List endpoints return an array:
+
+```json
+{
+  "data": [{ ... }, { ... }]
+}
+```
+
+## Error responses
+
+Errors return an appropriate HTTP status code with a JSON body:
+
+```json
+{
+  "error": "Human-readable error message"
+}
+```
+
+Validation errors include field-level details:
+
+```json
+{
+  "error": "Invalid request payload.",
+  "details": {
+    "fieldErrors": {
+      "title": ["Required"]
+    }
+  }
+}
+```
+
+## Common status codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `201` | Resource created |
+| `400` | Bad request (validation error) |
+| `401` | Unauthorized (missing or invalid token) |
+| `403` | Forbidden (insufficient role) |
+| `404` | Resource not found |
+| `500` | Internal server error |
+
+## Rate limiting
+
+There is currently no rate limiting enforced at the application level. If deployed behind a reverse proxy or API gateway, rate limiting may be configured there.

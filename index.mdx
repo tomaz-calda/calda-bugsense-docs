@@ -1,97 +1,68 @@
 ---
 title: "Introduction"
-description: "Welcome to the new home for your documentation"
+description: "BugSense is a bug-reporting platform that connects your clients with your development workflow through Linear, Slack, and AI-powered weekly reports."
 ---
 
-## Setting up
+## What is BugSense?
 
-Get your documentation site up and running in minutes.
+BugSense is an internal bug-reporting platform built for agencies and freelancers. It gives your clients a simple way to submit bugs while keeping your team's workflow in Linear organized and transparent.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="For team leads" icon="users">
+    Create projects linked to Linear, invite clients, and manage your bug pipeline with automated syncing and AI-generated reports.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="For clients" icon="bug">
+    Submit bug reports with screenshots and metadata, track issue status, leave comments, and receive weekly progress reports.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## How it works
 
-Everything you need to create world-class documentation.
+<Steps>
+  <Step title="Connect Linear">
+    An admin connects their Linear workspace via OAuth. BugSense syncs projects, teams, and issues bidirectionally.
+  </Step>
+  <Step title="Create a project">
+    Link a Linear project to BugSense, assign a team lead, and invite clients via email.
+  </Step>
+  <Step title="Clients report bugs">
+    Clients submit issues through the app or SDK. Each issue is automatically created in Linear with a "Client view" label.
+  </Step>
+  <Step title="Stay in sync">
+    Comments, status changes, and attachments sync between BugSense and Linear in real time via webhooks.
+  </Step>
+  <Step title="Weekly reports">
+    Every Monday, BugSense generates AI-powered weekly reports summarizing metrics, highlights, risks, and next steps for each project.
+  </Step>
+</Steps>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Explore the docs
 
-## Need inspiration?
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Set up BugSense locally and get the backend running.
+  </Card>
+  <Card title="Architecture" icon="vector-square" href="/architecture">
+    Understand the tech stack, project structure, and how modules connect.
+  </Card>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Learn about JWT-based auth, roles, and invite flows.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Browse all available API endpoints with request and response details.
+  </Card>
+</CardGroup>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+### Client apps
+
+<CardGroup cols={3}>
+  <Card title="Dashboard" icon="layout-dashboard" href="/dashboard">
+    The web dashboard for managing projects, issues, and reports.
+  </Card>
+  <Card title="Web SDK" icon="globe" href="/sdks/web">
+    Embed in-app bug reporting in any web application.
+  </Card>
+  <Card title="Flutter SDK" icon="tablet-smartphone" href="/sdks/flutter">
+    Add in-app bug reporting to Flutter apps.
+  </Card>
+</CardGroup>

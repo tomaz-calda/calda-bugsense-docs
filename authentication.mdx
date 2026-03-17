@@ -1,0 +1,67 @@
+---
+title: "Authentication"
+description: "How BugSense authenticates users with Supabase Auth, JWTs, and role-based access."
+---
+
+## Overview
+
+BugSense uses [Supabase Auth](https://supabase.com/docs/guides/auth) for authentication. All API requests (except webhooks and public endpoints) require a valid JWT in the `Authorization` header.
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+## User roles
+
+BugSense has two roles, stored in the `user_roles` table:
+
+| Role | Description | Capabilities |
+|------|-------------|-------------|
+| **admin** | Agency team lead or manager | Create projects, connect Linear, invite team leads and clients, access all projects |
+| **client** | External client | Submit bugs, view their project's issues, leave comments, read weekly reports |
+
+## Middleware
+
+### `requireAuth`
+
+Validates the JWT token and extracts the user ID. Applied to most endpoints.
+
+- Checks the `Authorization: Bearer <token>` header
+- Verifies the token with Supabase Auth
+- Sets `userId` in the request context
+- Returns `401` if the token is missing or invalid
+
+### `requireAdmin`
+
+Extends `requireAuth` with an admin role check.
+
+- Performs JWT validation (same as `requireAuth`)
+- Queries the `user_roles` table to verify the user has the `admin` role
+- Returns `403` if the user is not an admin
+
+## Invite flow
+
+BugSense uses an invite-based onboarding model. Users cannot self-register.
+
+<Steps>
+  <Step title="Admin sends invite">
+    An admin calls `POST /api/v1/invite-team-lead` with the invitee's email and name.
+  </Step>
+  <Step title="Supabase sends email">
+    Supabase Auth sends a magic link / invite email to the new user. The invite metadata includes `firstName`, `lastName`, and `role`.
+  </Step>
+  <Step title="User sets password">
+    The invited user clicks the link, which redirects to `CLIENT_INVITE_REDIRECT_URL` where they set their password.
+  </Step>
+  <Step title="User authenticates">
+    After setup, the user can authenticate with Supabase Auth and receive a JWT for API access.
+  </Step>
+</Steps>
+
+## Token lifecycle
+
+Tokens are issued by Supabase Auth and follow standard JWT conventions:
+
+- Tokens are short-lived (configurable in Supabase)
+- Supabase client SDKs handle automatic token refresh
+- The backend validates tokens using `supabase.auth.getClaims()` — no local secret verification is needed

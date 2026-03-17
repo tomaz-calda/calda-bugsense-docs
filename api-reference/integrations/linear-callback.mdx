@@ -1,0 +1,32 @@
+---
+title: "Linear OAuth callback"
+api: "GET /api/v1/integrations/linear/callback"
+description: "Handles the OAuth callback from Linear and stores the access token."
+---
+
+## Authentication
+
+This endpoint does not require authentication. It is called by Linear's OAuth redirect.
+
+## Query parameters
+
+<ParamField query="code" type="string" required>
+  Authorization code from Linear.
+</ParamField>
+
+<ParamField query="state" type="string" required>
+  State parameter for CSRF protection. Must match the stored OAuth state.
+</ParamField>
+
+## Behavior
+
+1. Validates the `state` parameter against stored OAuth states
+2. Exchanges the `code` for an access token via Linear's token endpoint
+3. Stores the access token in the `linear_connections` table
+4. Registers webhooks on the connected Linear team
+5. Redirects the user to the frontend application
+
+## Error handling
+
+- Invalid or expired `state` returns `400`
+- Token exchange failure returns `500`

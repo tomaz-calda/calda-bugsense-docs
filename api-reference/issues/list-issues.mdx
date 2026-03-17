@@ -1,0 +1,71 @@
+---
+title: "List issues"
+api: "GET /api/v1/projects/{projectId}/issues"
+description: "Returns all issues for a project."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>
+  UUID of the project.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of issue objects.
+
+  <Expandable title="issue object">
+    <ResponseField name="id" type="string">Issue UUID</ResponseField>
+    <ResponseField name="title" type="string">Bug title</ResponseField>
+    <ResponseField name="description" type="string | null">Bug description</ResponseField>
+    <ResponseField name="platform" type="string | null">`web`, `testflight`, `android`, or `figma`</ResponseField>
+    <ResponseField name="environment" type="string | null">`development`, `staging`, or `production`</ResponseField>
+    <ResponseField name="appVersion" type="string | null">Application version</ResponseField>
+    <ResponseField name="projectId" type="string">Parent project UUID</ResponseField>
+    <ResponseField name="linearTaskId" type="string | null">Linked Linear issue ID</ResponseField>
+    <ResponseField name="linearStatus" type="string | null">Current status from Linear</ResponseField>
+    <ResponseField name="linearPriority" type="integer | null">Priority level (0–4)</ResponseField>
+    <ResponseField name="linearAssigneeName" type="string | null">Assignee name from Linear</ResponseField>
+    <ResponseField name="linearUrl" type="string | null">Direct link to Linear issue</ResponseField>
+    <ResponseField name="linearTicketNumber" type="string | null">Ticket ID (e.g. `BUG-42`)</ResponseField>
+    <ResponseField name="linearLabels" type="string[] | null">Labels from Linear</ResponseField>
+    <ResponseField name="archivedAt" type="string | null">ISO 8601 timestamp if archived</ResponseField>
+    <ResponseField name="createdBy" type="string | null">UUID of the user who created the issue</ResponseField>
+    <ResponseField name="createdAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="updatedAt" type="string">ISO 8601 timestamp</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": [
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "title": "Login button not responding on Safari",
+      "description": "When clicking the login button on Safari 17...",
+      "platform": "web",
+      "environment": "production",
+      "appVersion": "2.1.0",
+      "projectId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "linearTaskId": "LIN-123",
+      "linearStatus": "In Progress",
+      "linearPriority": 2,
+      "linearAssigneeName": "John Doe",
+      "linearUrl": "https://linear.app/team/issue/BUG-42",
+      "linearTicketNumber": "BUG-42",
+      "linearLabels": ["Client view", "Bug"],
+      "archivedAt": null,
+      "createdBy": "660e9500-f30c-52e5-b827-557766550000",
+      "createdAt": "2025-03-12T09:15:00.000Z",
+      "updatedAt": "2025-03-14T16:45:00.000Z"
+    }
+  ]
+}
+```
+</ResponseExample>

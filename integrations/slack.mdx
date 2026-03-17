@@ -1,0 +1,32 @@
+---
+title: "Slack"
+description: "How BugSense sends notifications and issue digests to Slack channels."
+---
+
+## Overview
+
+BugSense integrates with Slack to keep your team notified about new bugs and weekly reports. Each project can be linked to a Slack channel for automated notifications.
+
+## Features
+
+### New issue digests
+
+When new bugs are submitted by clients, BugSense sends a digest of unnotified issues to the project's linked Slack channel. This runs as a scheduled cron job via `POST /api/v1/jobs/slack-issue-digest`.
+
+### Weekly report notifications
+
+When a weekly report is generated, BugSense sends a DM to relevant team members via Slack notifying them that a new report is ready for review.
+
+### Link button interactivity
+
+Slack requires an interactivity request URL to be configured for apps that use buttons. BugSense provides `POST /api/v1/webhooks/slack/interactive` as an acknowledgment endpoint. It simply returns `200 OK` so Slack doesn't show warning dialogs when users click link buttons.
+
+## Configuration
+
+| Variable | Description |
+|----------|-------------|
+| `SLACK_BOT_TOKEN` | Bot token starting with `xoxb-` |
+
+## Project setup
+
+When creating a project, you can optionally provide a `slackChannelId` to link the project to a specific Slack channel. The bot must be invited to that channel for notifications to work.

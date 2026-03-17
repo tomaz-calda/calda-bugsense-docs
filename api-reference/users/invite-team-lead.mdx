@@ -1,0 +1,52 @@
+---
+title: "Invite team lead"
+api: "POST /api/v1/invite-team-lead"
+description: "Invites a new team lead by email. Admin only."
+---
+
+## Authentication
+
+<Icon icon="shield" /> Requires **admin** role
+
+## Request body
+
+<ParamField body="email" type="string" required>
+  Email address of the team lead to invite (max 320 characters).
+</ParamField>
+
+<ParamField body="firstName" type="string" required>
+  First name (1–100 characters).
+</ParamField>
+
+<ParamField body="lastName" type="string" required>
+  Last name (1–100 characters).
+</ParamField>
+
+<RequestExample>
+```json
+{
+  "email": "jane@agency.com",
+  "firstName": "Jane",
+  "lastName": "Smith"
+}
+```
+</RequestExample>
+
+## Response
+
+<ResponseExample>
+```json 201
+{
+  "data": {
+    "email": "jane@agency.com",
+    "invited": true
+  }
+}
+```
+</ResponseExample>
+
+## Notes
+
+- The invite is sent via Supabase Auth's `inviteUserByEmail` method.
+- Invite metadata includes `firstName`, `lastName`, and `role` for automatic profile setup.
+- The invited user is redirected to `CLIENT_INVITE_REDIRECT_URL` to set their password.

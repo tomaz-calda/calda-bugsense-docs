@@ -1,0 +1,130 @@
+---
+title: "Create project"
+api: "POST /api/v1/projects"
+description: "Creates a new project linked to a Linear project. Admin only."
+---
+
+## Authentication
+
+<Icon icon="shield" /> Requires **admin** role
+
+## Request body
+
+<ParamField body="linearProjectId" type="string" required>
+  The Linear project ID to link (1–100 characters).
+</ParamField>
+
+<ParamField body="teamLeadUserId" type="string" required>
+  UUID of the team lead to assign.
+</ParamField>
+
+<ParamField body="clients" type="array" required>
+  Array of client objects (at least one). Each client is invited via email if they don't already have an account.
+
+  <Expandable title="client object">
+    <ParamField body="email" type="string" required>Client email address</ParamField>
+    <ParamField body="firstName" type="string" optional>Client first name</ParamField>
+    <ParamField body="lastName" type="string" optional>Client last name</ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="slackChannelId" type="string" optional>
+  Slack channel ID for issue notifications.
+</ParamField>
+
+<RequestExample>
+```json
+{
+  "linearProjectId": "proj_abc123",
+  "teamLeadUserId": "550e8400-e29b-41d4-a716-446655440000",
+  "clients": [
+    {
+      "email": "client@company.com",
+      "firstName": "Alice",
+      "lastName": "Johnson"
+    }
+  ],
+  "slackChannelId": "C01ABCDEF"
+}
+```
+</RequestExample>
+
+## Response
+
+<ResponseField name="data" type="object">
+  The created project with its clients.
+
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">Project UUID</ResponseField>
+    <ResponseField name="linearProjectId" type="string">Linked Linear project ID</ResponseField>
+    <ResponseField name="linearProjectName" type="string">Linear project name</ResponseField>
+    <ResponseField name="linearTeamId" type="string">Linear team ID</ResponseField>
+    <ResponseField name="teamLeadUserId" type="string">Team lead UUID</ResponseField>
+    <ResponseField name="teamLeadEmail" type="string | null">Team lead email</ResponseField>
+    <ResponseField name="linearProjectUrl" type="string | null">Link to Linear project</ResponseField>
+    <ResponseField name="slackChannelId" type="string | null">Slack channel ID</ResponseField>
+    <ResponseField name="createdBy" type="string">Admin UUID who created the project</ResponseField>
+    <ResponseField name="createdAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="updatedAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="clients" type="array">
+      <Expandable title="client object">
+        <ResponseField name="userId" type="string">Client UUID</ResponseField>
+        <ResponseField name="email" type="string | null">Client email</ResponseField>
+        <ResponseField name="firstName" type="string | null">Client first name</ResponseField>
+        <ResponseField name="lastName" type="string | null">Client last name</ResponseField>
+        <ResponseField name="addedAt" type="string">ISO 8601 timestamp</ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="meta" type="object">
+  <Expandable title="properties">
+    <ResponseField name="clients" type="array">
+      Status of each client invitation.
+      <Expandable title="client result">
+        <ResponseField name="email" type="string">Client email</ResponseField>
+        <ResponseField name="invitationSent" type="boolean">Whether an invite was sent</ResponseField>
+        <ResponseField name="membershipCreated" type="boolean">Whether project membership was created</ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 201
+{
+  "data": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "linearProjectId": "proj_abc123",
+    "linearProjectName": "Client App Redesign",
+    "linearTeamId": "team_xyz",
+    "teamLeadUserId": "550e8400-e29b-41d4-a716-446655440000",
+    "teamLeadEmail": "john@agency.com",
+    "linearProjectUrl": "https://linear.app/team/project/proj_abc123",
+    "slackChannelId": "C01ABCDEF",
+    "createdBy": "550e8400-e29b-41d4-a716-446655440000",
+    "createdAt": "2025-03-10T14:20:00.000Z",
+    "updatedAt": "2025-03-10T14:20:00.000Z",
+    "clients": [
+      {
+        "userId": "660e9500-f30c-52e5-b827-557766550000",
+        "email": "client@company.com",
+        "firstName": "Alice",
+        "lastName": "Johnson",
+        "addedAt": "2025-03-10T14:20:00.000Z"
+      }
+    ]
+  },
+  "meta": {
+    "clients": [
+      {
+        "email": "client@company.com",
+        "invitationSent": true,
+        "membershipCreated": true
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

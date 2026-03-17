@@ -1,0 +1,147 @@
+---
+title: "Dashboard"
+description: "The BugSense web dashboard for managing projects, issues, reports, and team members."
+---
+
+## Overview
+
+The BugSense dashboard is a React single-page application that serves as the primary interface for both **admins** (team leads) and **clients**. Admins manage projects, connect Linear, invite clients, and review AI-generated weekly reports. Clients view their issues on a kanban board, submit new bugs, leave comments, and read weekly summaries.
+
+**Live app:** [calda-bugsense-frontend.vercel.app](https://calda-bugsense-frontend.vercel.app/)
+
+## Tech stack
+
+| Layer | Technology |
+|-------|------------|
+| **Framework** | React 19 + Vite 7 |
+| **Routing** | React Router 7 |
+| **Styling** | Tailwind CSS 4 + shadcn/ui |
+| **Server state** | TanStack Query 5 |
+| **Rich text** | Tiptap |
+| **Icons** | Lucide React |
+| **Auth** | Supabase Auth (JWT via REST endpoints) |
+
+## Roles and views
+
+The dashboard adapts its layout based on the authenticated user's role.
+
+<CardGroup cols={2}>
+  <Card title="Admin" icon="user-gear">
+    - Projects table with Linear status
+    - Kanban board per project
+    - Create projects linked to Linear
+    - Invite clients via email
+    - Review and approve weekly reports
+    - Connect/disconnect Linear workspace
+    - Manage team leads
+  </Card>
+  <Card title="Client" icon="user">
+    - Kanban board for their project
+    - Create new bug tickets
+    - View ticket details and leave comments
+    - Read weekly progress reports
+    - Inbox notifications
+  </Card>
+</CardGroup>
+
+## Pages
+
+| Route | Page | Role | Description |
+|-------|------|------|-------------|
+| `/` | Welcome | Public | Create account (signup) |
+| `/login` | Login | Public | Email/password login |
+| `/forgot-password` | Forgot password | Public | Request password reset email |
+| `/set-password` | Set password | Public | Set password from invite or recovery link |
+| `/app` | Dashboard | Admin | Projects list, Linear connection, create project |
+| `/app` | Dashboard | Client | Kanban board for assigned project |
+| `/app/dashboard` | Project dashboard | Admin | Kanban view for a selected project |
+| `/app/inbox` | Inbox | All | Notification feed |
+| `/app/reports` | Reports | All | Weekly AI-generated reports (admin can edit/approve) |
+| `/app/team-leads` | Team leads | Admin | Team leads table with invite form |
+
+## Authentication flow
+
+1. User logs in via Supabase REST endpoint (`POST /auth/v1/token`).
+2. JWT and refresh token are stored in `localStorage`.
+3. All backend requests include `Authorization: Bearer <token>`.
+4. On 401 response, tokens are cleared and the user is redirected to `/login`.
+
+### Invite flow
+
+1. Admin invites a client via email through the Create Project form.
+2. Client receives an invite email with a link containing `#access_token=...&type=invite`.
+3. The app detects the hash fragment and redirects to `/set-password`.
+4. Client sets their password and is redirected to `/login`.
+
+### Password recovery
+
+1. User requests a reset on `/forgot-password`.
+2. Email contains a link with `#access_token=...&type=recovery`.
+3. Same `/set-password` page handles the reset.
+
+## Key features
+
+### Kanban board
+
+Issues are displayed in a kanban board grouped by status columns. Clicking a ticket opens a detail sidebar with the full description, metadata, attachments, and a comment thread that syncs with Linear.
+
+### Create ticket (client)
+
+Clients can create new issues with:
+- Title and rich-text description (bold, italic, strikethrough)
+- Platform selector (Web, Apple, Android, Figma)
+- Environment (Staging, Production)
+- File attachments
+
+New issues are automatically synced to Linear with a "Client view" label.
+
+### Weekly reports
+
+Every Monday, the backend generates AI-powered reports per project. The Reports page shows these grouped by month. Admins can edit report content and approve reports before they are visible to clients.
+
+### Linear integration
+
+Admins connect their Linear workspace via OAuth directly from the sidebar. Once connected, projects can be linked to Linear projects during creation, and all issues and comments sync bidirectionally.
+
+## Project structure
+
+```
+src/
+├── app/
+│   ├── router/              # Route definitions, guards
+│   ├── providers/           # TanStack Query provider
+│   ├── app-shell.tsx        # Main shell (fetches user, provides context)
+│   └── app-index-page.tsx   # Role-based index dispatch
+├── components/
+│   ├── ui/                  # shadcn/ui primitives
+│   ├── layout/              # AppLayout, AppSidebar
+│   └── shared/              # AuthLayout, AuthHeroPanel
+├── contexts/                # UserContext, ProjectContext
+├── features/
+│   ├── auth/                # Login, signup, password flows
+│   ├── home/                # Client dashboard, inbox, reports, kanban
+│   └── admin/               # Admin dashboard, projects table, invites
+├── hooks/                   # useAuth, useProfileImageUrl
+├── integrations/
+│   └── api/client.ts        # Centralized API client
+└── index.css                # Design tokens, Tailwind config
+```
+
+## Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_URL` | Supabase project URL (auth REST endpoints) |
+| `VITE_SUPABASE_ANON_KEY` | Supabase publishable anon key |
+| `VITE_API_BASE_URL` | Backend API URL (not needed in dev — Vite proxies `/api`) |
+
+## Local development
+
+```bash
+git clone <repo-url> calda-bugsense-frontend
+cd calda-bugsense-frontend
+npm install
+npm run dev
+```
+
+The Vite dev server proxies `/api` requests to the backend at `https://calda-bugsense-backend.onrender.com`, so you don't need to set `VITE_API_BASE_URL` locally.

@@ -1,0 +1,62 @@
+---
+title: "Approve report"
+api: "POST /api/v1/projects/{projectId}/reports/{reportId}/approve"
+description: "Approves a draft report, making it visible to clients and triggering email notifications."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>
+  UUID of the project.
+</ParamField>
+
+<ParamField path="reportId" type="string" required>
+  UUID of the report to approve.
+</ParamField>
+
+## Behavior
+
+Approving a report:
+
+1. Changes the report status from `draft` to `approved`
+2. Sends email notifications to project clients with the report summary
+3. Sends Slack DMs to relevant team members
+
+## Response
+
+Returns the approved report with `status: "approved"`.
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "id": "e5f6a7b8-9012-3456-ef01-345678901234",
+    "projectId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "status": "approved",
+    "periodStart": "2025-03-03T00:00:00.000Z",
+    "periodEndExclusive": "2025-03-10T00:00:00.000Z",
+    "reportPeriodLabel": "Mar 3 – Mar 9, 2025",
+    "headline": "Strong progress on critical bugs",
+    "summary": "This week saw 5 new issues reported and 3 resolved...",
+    "highlights": ["Resolved the Safari login bug"],
+    "risks": ["Android build stability needs attention"],
+    "nextSteps": ["Prioritize remaining Android issues"],
+    "metricsOpened": 5,
+    "metricsUpdated": 8,
+    "metricsResolved": 3,
+    "metricsActive": 12,
+    "metricsComments": 15,
+    "metricsDuplicates": 1,
+    "topIssues": [],
+    "llmModel": "gpt-4o-mini",
+    "generatedAt": "2025-03-10T09:00:00.000Z",
+    "createdAt": "2025-03-10T09:00:00.000Z",
+    "updatedAt": "2025-03-10T16:00:00.000Z"
+  }
+}
+```
+</ResponseExample>

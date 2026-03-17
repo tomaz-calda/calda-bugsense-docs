@@ -1,0 +1,59 @@
+---
+title: "Linear"
+description: "How BugSense integrates with Linear for bidirectional issue and comment syncing."
+---
+
+## Overview
+
+Linear is the core integration in BugSense. It provides bidirectional syncing of issues, comments, and attachments between BugSense and your Linear workspace.
+
+## Connection flow
+
+BugSense uses OAuth 2.0 to connect to Linear:
+
+<Steps>
+  <Step title="Initiate OAuth">
+    An admin calls `GET /api/v1/integrations/linear/connect` which returns an authorization URL.
+  </Step>
+  <Step title="Authorize in Linear">
+    The admin is redirected to Linear's OAuth consent screen and grants access.
+  </Step>
+  <Step title="Callback">
+    Linear redirects back to `GET /api/v1/integrations/linear/callback` with an authorization code. BugSense exchanges this for an access token and stores it.
+  </Step>
+  <Step title="Webhook registration">
+    BugSense automatically registers webhooks on the connected Linear team to receive events.
+  </Step>
+</Steps>
+
+## What syncs
+
+### BugSense → Linear
+
+| Event | Action in Linear |
+|-------|-----------------|
+| Client creates an issue | New Linear issue created with "Client view" label |
+| Client adds a comment | Comment mirrored to the Linear issue |
+
+### Linear → BugSense (via webhooks)
+
+| Linear event | Action in BugSense |
+|-------------|-------------------|
+| Issue updated (status, priority, assignee) | Local issue record updated |
+| Comment created | Comment stored locally |
+| Comment updated | Local comment updated |
+| Attachment added | Attachment reference stored |
+| Project updated | Project name synced |
+
+## Webhook verification
+
+Linear signs webhook payloads with HMAC-SHA256. BugSense verifies each incoming webhook against the stored `signing_secret` for the team. Unverified requests are rejected with `401`.
+
+## Configuration
+
+| Variable | Description |
+|----------|-------------|
+| `LINEAR_CLIENT_ID` | OAuth application client ID |
+| `LINEAR_CLIENT_SECRET` | OAuth application client secret |
+| `LINEAR_OAUTH_REDIRECT_URI` | Callback URL (e.g. `https://api.bugsense.app/api/v1/integrations/linear/callback`) |
+| `LINEAR_OAUTH_SCOPES` | Requested scopes (default: `read,write,admin`) |

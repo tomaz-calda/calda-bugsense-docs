@@ -1,0 +1,33 @@
+---
+title: "Get connection status"
+api: "GET /api/v1/integrations/linear/connection"
+description: "Returns the current Linear connection status. Admin only."
+---
+
+## Authentication
+
+<Icon icon="shield" /> Requires **admin** role
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="connected" type="boolean">Whether a Linear connection exists</ResponseField>
+    <ResponseField name="linearUserId" type="string | null">Connected Linear user ID</ResponseField>
+    <ResponseField name="linearUserEmail" type="string | null">Connected Linear user email</ResponseField>
+    <ResponseField name="connectedAt" type="string | null">ISO 8601 timestamp of connection</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "connected": true,
+    "linearUserId": "lin_user_abc",
+    "linearUserEmail": "john@agency.com",
+    "connectedAt": "2025-02-20T10:00:00.000Z"
+  }
+}
+```
+</ResponseExample>

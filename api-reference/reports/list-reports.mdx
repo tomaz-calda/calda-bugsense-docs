@@ -1,0 +1,111 @@
+---
+title: "List reports"
+api: "GET /api/v1/projects/{projectId}/reports"
+description: "Returns weekly reports for a project."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>
+  UUID of the project.
+</ParamField>
+
+## Query parameters
+
+<ParamField query="limit" type="integer" default="12">
+  Number of reports to return (1–52).
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of weekly report objects, ordered by most recent first.
+
+  <Expandable title="report object">
+    <ResponseField name="id" type="string">Report UUID</ResponseField>
+    <ResponseField name="projectId" type="string">Parent project UUID</ResponseField>
+    <ResponseField name="status" type="string">`draft` or `approved`</ResponseField>
+    <ResponseField name="periodStart" type="string">Period start (ISO 8601)</ResponseField>
+    <ResponseField name="periodEndExclusive" type="string">Period end, exclusive (ISO 8601)</ResponseField>
+    <ResponseField name="reportPeriodLabel" type="string">Human-readable period label</ResponseField>
+    <ResponseField name="headline" type="string">Summary headline</ResponseField>
+    <ResponseField name="summary" type="string">Narrative summary</ResponseField>
+    <ResponseField name="highlights" type="string[]">Key accomplishments</ResponseField>
+    <ResponseField name="risks" type="string[]">Identified risks</ResponseField>
+    <ResponseField name="nextSteps" type="string[]">Planned next actions</ResponseField>
+    <ResponseField name="metricsOpened" type="integer">Issues opened</ResponseField>
+    <ResponseField name="metricsUpdated" type="integer">Issues updated</ResponseField>
+    <ResponseField name="metricsResolved" type="integer">Issues resolved</ResponseField>
+    <ResponseField name="metricsActive" type="integer">Currently active issues</ResponseField>
+    <ResponseField name="metricsComments" type="integer">Comments added</ResponseField>
+    <ResponseField name="metricsDuplicates" type="integer">Duplicates detected</ResponseField>
+    <ResponseField name="topIssues" type="array">
+      <Expandable title="top issue object">
+        <ResponseField name="title" type="string">Issue title</ResponseField>
+        <ResponseField name="linearTaskId" type="string | null">Linear issue ID</ResponseField>
+        <ResponseField name="linearTicketNumber" type="string | null">Ticket number</ResponseField>
+        <ResponseField name="linearUrl" type="string | null">Link to Linear issue</ResponseField>
+        <ResponseField name="status" type="string | null">Current status</ResponseField>
+        <ResponseField name="commentCount" type="integer">Number of comments</ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="llmModel" type="string | null">AI model used</ResponseField>
+    <ResponseField name="generatedAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="createdAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="updatedAt" type="string">ISO 8601 timestamp</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": [
+    {
+      "id": "e5f6a7b8-9012-3456-ef01-345678901234",
+      "projectId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "status": "approved",
+      "periodStart": "2025-03-03T00:00:00.000Z",
+      "periodEndExclusive": "2025-03-10T00:00:00.000Z",
+      "reportPeriodLabel": "Mar 3 – Mar 9, 2025",
+      "headline": "Strong progress on critical bugs",
+      "summary": "This week saw 5 new issues reported and 3 resolved...",
+      "highlights": [
+        "Resolved the Safari login bug affecting 30% of users",
+        "Reduced average response time to under 24 hours"
+      ],
+      "risks": [
+        "Android build stability needs attention"
+      ],
+      "nextSteps": [
+        "Prioritize remaining Android issues",
+        "Schedule regression testing for Safari fixes"
+      ],
+      "metricsOpened": 5,
+      "metricsUpdated": 8,
+      "metricsResolved": 3,
+      "metricsActive": 12,
+      "metricsComments": 15,
+      "metricsDuplicates": 1,
+      "topIssues": [
+        {
+          "title": "Login button not responding on Safari",
+          "linearTaskId": "LIN-123",
+          "linearTicketNumber": "BUG-42",
+          "linearUrl": "https://linear.app/team/issue/BUG-42",
+          "status": "Done",
+          "commentCount": 5
+        }
+      ],
+      "llmModel": "gpt-4o-mini",
+      "generatedAt": "2025-03-10T09:00:00.000Z",
+      "createdAt": "2025-03-10T09:00:00.000Z",
+      "updatedAt": "2025-03-10T12:30:00.000Z"
+    }
+  ]
+}
+```
+</ResponseExample>
