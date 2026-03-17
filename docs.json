@@ -18,11 +18,7 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": ["index", "quickstart", "architecture"]
-          },
-          {
-            "group": "Core concepts",
-            "pages": ["authentication", "data-model"]
+            "pages": ["index"]
           },
           {
             "group": "Client apps",
@@ -34,8 +30,13 @@
               "integrations/linear",
               "integrations/slack",
               "integrations/email",
-              "integrations/openai"
+              "integrations/openai",
+              "integrations/chatgpt"
             ]
+          },
+          {
+            "group": "Development",
+            "pages": ["architecture", "authentication", "data-model", "quickstart"]
           }
         ]
       },

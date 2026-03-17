@@ -39,24 +39,51 @@ Extends `requireAuth` with an admin role check.
 - Queries the `user_roles` table to verify the user has the `admin` role
 - Returns `403` if the user is not an admin
 
-## Invite flow
+## Invite flows
 
-BugSense uses an invite-based onboarding model. Users cannot self-register.
+BugSense uses an invite-based onboarding model. Users cannot self-register. There are two separate flows depending on the role being invited.
+
+### Inviting a team lead
+
+Team leads are invited by an existing admin and receive the **admin** role.
 
 <Steps>
   <Step title="Admin sends invite">
-    An admin calls `POST /api/v1/invite-team-lead` with the invitee's email and name.
+    An admin calls `POST /api/v1/invite-team-lead` with the invitee's email, first name, and last name.
   </Step>
   <Step title="Supabase sends email">
-    Supabase Auth sends a magic link / invite email to the new user. The invite metadata includes `firstName`, `lastName`, and `role`.
+    Supabase Auth sends an invite email. The invite metadata includes `firstName`, `lastName`, and `role: "admin"`.
   </Step>
-  <Step title="User sets password">
-    The invited user clicks the link, which redirects to `CLIENT_INVITE_REDIRECT_URL` where they set their password.
+  <Step title="Team lead sets password">
+    The team lead clicks the link, which redirects to `CLIENT_INVITE_REDIRECT_URL` (the dashboard's `/set-password` page) where they set their password.
   </Step>
-  <Step title="User authenticates">
-    After setup, the user can authenticate with Supabase Auth and receive a JWT for API access.
+  <Step title="Team lead authenticates">
+    After setup, the team lead logs in and has full admin access — they can create projects, connect Linear, and invite clients.
   </Step>
 </Steps>
+
+### Inviting a client
+
+Clients are invited as part of project creation and receive the **client** role.
+
+<Steps>
+  <Step title="Admin creates a project">
+    An admin calls `POST /api/v1/projects` with project details and a list of clients (email, first name, last name).
+  </Step>
+  <Step title="Backend invites new clients">
+    For each client email that doesn't already exist, the backend calls Supabase Auth to send an invite email with metadata `firstName`, `lastName`, and `role: "client"`. Existing clients are added to the project directly.
+  </Step>
+  <Step title="Client sets password">
+    The client clicks the invite link, which redirects to the dashboard's `/set-password` page where they set their password.
+  </Step>
+  <Step title="Client authenticates">
+    After setup, the client logs in and sees their assigned project's kanban board, can submit bugs, leave comments, and read weekly reports.
+  </Step>
+</Steps>
+
+<Note>
+  A client can only be assigned to one project. Admin users cannot be added as project clients.
+</Note>
 
 ## Token lifecycle
 

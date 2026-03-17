@@ -7,36 +7,39 @@ description: "Technical overview of BugSense's stack, project structure, and mod
 
 BugSense consists of four repositories that work together:
 
-```
-┌─────────────────────────────────────────────────────┐
-│                   Client apps                       │
-│                                                     │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │
-│  │  Dashboard   │  │   Web SDK   │  │ Flutter SDK │ │
-│  │  (React)     │  │ (@calda/    │  │ (calda_bug_ │ │
-│  │              │  │  bug-sdk)   │  │  sdk)       │ │
-│  └──────┬───────┘  └──────┬──────┘  └──────┬──────┘ │
-└─────────┼─────────────────┼────────────────┼────────┘
-          │                 │                │
-          │  REST API + Supabase Auth (JWT)  │
-          │                 │                │
-┌─────────▼─────────────────▼────────────────▼────────┐
-│                    Backend (Hono)                    │
-│  Routes · Services · Middleware · Cron jobs          │
-├─────────────────────────────────────────────────────┤
-│  PostgreSQL (Supabase) · Supabase Storage           │
-└──────────┬──────────────┬──────────────┬────────────┘
-           │              │              │
-     ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
-     │   Linear   │ │   Slack   │ │  OpenAI   │
-     │  (issues)  │ │  (notify) │ │ (reports) │
-     └───────────┘ └───────────┘ └───────────┘
+```mermaid actions={false}
+graph TD
+  subgraph clients ["Client apps"]
+    Dashboard["Dashboard<br/>(React)"]
+    WebSDK["Web SDK<br/>(@calda/bug-sdk)"]
+    FlutterSDK["Flutter SDK<br/>(calda_bug_sdk)"]
+  end
+
+  API["REST API + Supabase Auth"]
+
+  subgraph backend ["Backend (Hono)"]
+    Server["Routes · Services · Middleware · Cron jobs"]
+    DB["PostgreSQL (Supabase) · Supabase Storage"]
+  end
+
+  Dashboard --> API
+  WebSDK --> API
+  FlutterSDK --> API
+  API --> Server
+  Server --> DB
+
+  DB --> Linear["Linear<br/>(issues)"]
+  DB --> Slack["Slack & Email<br/>(notify)"]
+  DB --> OpenAI["OpenAI<br/>(reports)"]
+
+  ChatGPT["ChatGPT APP<br/>(MCP)"] <--> Server
 ```
 
 - **Dashboard** — React SPA for admins and clients to manage projects, issues, and reports.
 - **Web SDK** — npm package that adds a floating bug-report widget to any web app.
 - **Flutter SDK** — Dart package that adds a floating bug-report widget to Flutter apps.
-- **Backend** — Hono API server handling auth, data, Linear sync, and AI report generation.
+- **Backend** — Hono API server handling auth, data, Linear sync, AI report generation, and ChatGPT MCP integration.
+- **ChatGPT** — Connects via MCP protocol with OAuth, letting users query projects and issues through natural language.
 
 ## Tech stack
 
@@ -76,77 +79,6 @@ BugSense consists of four repositories that work together:
 
 Both SDKs share the same report payload schema and capture similar telemetry (logs, errors, network, navigation, breadcrumbs).
 
-## Project structure
-
-```
-calda-bugsense-backend/
-├── app/
-│   ├── src/
-│   │   ├── app.ts                 # Hono app setup, CORS, route mounting
-│   │   ├── index.ts               # Entry point, starts HTTP server
-│   │   ├── routes/index.ts        # Central route registration
-│   │   ├── db/
-│   │   │   ├── client.ts          # Drizzle database client
-│   │   │   ├── transaction.ts     # Transaction helper
-│   │   │   └── schema/            # Drizzle table definitions
-│   │   ├── lib/
-│   │   │   ├── env.ts             # Zod-validated environment config
-│   │   │   ├── http-error.ts      # HTTP error classes
-│   │   │   └── supabase-admin.ts  # Supabase admin client
-│   │   ├── middleware/
-│   │   │   ├── auth.ts            # JWT validation and role checks
-│   │   │   └── error-handler.ts   # Global error handler
-│   │   ├── modules/               # Feature modules
-│   │   │   ├── users/
-│   │   │   ├── projects/
-│   │   │   ├── issues/
-│   │   │   ├── issue-comments/
-│   │   │   ├── reports/
-│   │   │   ├── integrations/linear/
-│   │   │   ├── webhooks/linear/
-│   │   │   ├── webhooks/slack/
-│   │   │   ├── jobs/
-│   │   │   ├── chatgpt/
-│   │   │   ├── email/
-│   │   │   └── slack/
-│   │   └── jobs/                  # Cron job implementations
-│   ├── drizzle.config.ts
-│   ├── package.json
-│   └── .env.example
-├── supabase/
-│   ├── config.toml                # Local Supabase config
-│   ├── migrations/                # SQL migrations
-│   └── seed.sql                   # Seed data
-└── api/                           # Bruno HTTP test files
-```
-
-## Module pattern
-
-Each feature module follows a consistent structure:
-
-```
-modules/<feature>/
-├── <feature>.handler.ts   # Route definitions (Hono handlers)
-├── <feature>.service.ts   # Business logic
-└── <feature>.types.ts     # Zod schemas and TypeScript types
-```
-
-- **Handler** — Defines HTTP routes, parses and validates input, calls the service layer, and returns responses.
-- **Service** — Contains business logic, database queries, and external API calls. Never touches HTTP request/response objects directly.
-- **Types** — Zod validation schemas for request payloads and TypeScript type definitions.
-
-## Request lifecycle
-
-```
-Client Request
-  → Hono Router
-    → Middleware (auth, error handler)
-      → Handler (parse + validate input)
-        → Service (business logic + DB)
-          → External APIs (Linear, Slack, Brevo, OpenAI)
-        ← Response JSON
-```
-
 ## Key integrations flow
 
 ### Linear sync
@@ -163,5 +95,5 @@ Scheduled tasks run via Supabase `pg_cron` and call internal API endpoints with 
 | Job | Schedule | Endpoint |
 |-----|----------|----------|
 | Weekly client report | Mondays 09:00 UTC | `POST /api/v1/jobs/weekly-client-report` |
-| Slack issue digest | Configurable | `POST /api/v1/jobs/slack-issue-digest` |
-| Email comments digest | Configurable | `POST /api/v1/jobs/email-comments-digest` |
+| Slack issue digest | Every 30 minutes | `POST /api/v1/jobs/slack-issue-digest` |
+| Email comments digest | Every 30 minutes | `POST /api/v1/jobs/email-comments-digest` |

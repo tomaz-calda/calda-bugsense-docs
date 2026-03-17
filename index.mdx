@@ -20,40 +20,23 @@ BugSense is an internal bug-reporting platform built for agencies and freelancer
 
 <Steps>
   <Step title="Connect Linear">
-    An admin connects their Linear workspace via OAuth. BugSense syncs projects, teams, and issues bidirectionally.
+    Team lead connects their Linear workspace via OAuth. BugSense syncs projects, teams, and issues bidirectionally.
   </Step>
   <Step title="Create a project">
-    Link a Linear project to BugSense, assign a team lead, and invite clients via email.
+    Link a Linear project to BugSense, assign a team lead, invite clients via email and link the project to a Slack channel.
   </Step>
   <Step title="Clients report bugs">
-    Clients submit issues through the app or SDK. Each issue is automatically created in Linear with a "Client view" label.
+    Clients submit issues through the app or SDK. Each issue is automatically created in Linear and checked for duplication using the OpenAI API.
   </Step>
-  <Step title="Stay in sync">
-    Comments, status changes, and attachments sync between BugSense and Linear in real time via webhooks.
+  <Step title="Stay in sync & get notified">
+    Comments, status changes, and attachments sync between BugSense and Linear in real time via webhooks. Internal Slack channel receives notifications when new issues are created.
   </Step>
   <Step title="Weekly reports">
-    Every Monday, BugSense generates AI-powered weekly reports summarizing metrics, highlights, risks, and next steps for each project.
+    Every Monday, BugSense generates AI-powered weekly reports based on progress in the previous week. Admins must review and approve the reports before they are visible to clients. They receive notifications via Slack when new reports are available.
   </Step>
 </Steps>
 
-## Explore the docs
-
-<CardGroup cols={2}>
-  <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Set up BugSense locally and get the backend running.
-  </Card>
-  <Card title="Architecture" icon="vector-square" href="/architecture">
-    Understand the tech stack, project structure, and how modules connect.
-  </Card>
-  <Card title="Authentication" icon="lock" href="/authentication">
-    Learn about JWT-based auth, roles, and invite flows.
-  </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Browse all available API endpoints with request and response details.
-  </Card>
-</CardGroup>
-
-### Client apps
+## Client apps
 
 <CardGroup cols={3}>
   <Card title="Dashboard" icon="layout-dashboard" href="/dashboard">
@@ -64,5 +47,22 @@ BugSense is an internal bug-reporting platform built for agencies and freelancer
   </Card>
   <Card title="Flutter SDK" icon="tablet-smartphone" href="/sdks/flutter">
     Add in-app bug reporting to Flutter apps.
+  </Card>
+</CardGroup>
+
+## Development
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="vector-square" href="/architecture">
+    Tech stack, project structure, and how the system connects.
+  </Card>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    JWT-based auth, roles, and invite flows.
+  </Card>
+  <Card title="Backend setup" icon="terminal" href="/quickstart">
+    Get the backend running locally for development.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    All available API endpoints with request and response details.
   </Card>
 </CardGroup>

@@ -1,6 +1,6 @@
 ---
-title: "Quickstart"
-description: "Get BugSense running locally in a few minutes."
+title: "Backend setup"
+description: "Get the BugSense backend running locally for development."
 ---
 
 ## Prerequisites
@@ -8,6 +8,7 @@ description: "Get BugSense running locally in a few minutes."
 - [Node.js](https://nodejs.org) v20+
 - [Supabase CLI](https://supabase.com/docs/guides/cli) for local development
 - A [Linear](https://linear.app) account (for integration testing)
+- [Docker](https://www.docker.com) app for local Supabase development
 
 ## Setup
 
@@ -50,13 +51,6 @@ description: "Get BugSense running locally in a few minutes."
 
     See [environment variables](#environment-variables) for the full list.
   </Step>
-  <Step title="Push the database schema">
-    ```bash
-    npm run db:push
-    ```
-
-    This uses Drizzle ORM to push the schema to your local Supabase database.
-  </Step>
   <Step title="Start the dev server">
     ```bash
     npm run dev
@@ -69,6 +63,13 @@ description: "Get BugSense running locally in a few minutes."
     ```
 
     You should see `{"status":"ok"}`.
+  </Step>
+  <Step title="Import /api/ into Bruno (optional)">
+    ```bash
+    bruno import /api/
+    ```
+
+    This will import the API endpoints into Bruno for testing.
   </Step>
 </Steps>
 
@@ -85,26 +86,26 @@ description: "Get BugSense running locally in a few minutes."
 
 ## Environment variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `PORT` | No | Server port (default: `8000`) |
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `SUPABASE_URL` | Yes | Supabase instance URL |
-| `SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
-| `SUPABASE_SERVICE_ROLE_KEY` | No | Supabase service role key (for admin operations) |
-| `SUPABASE_PROFILE_BUCKET` | No | Storage bucket name for profile images |
-| `BREVO_API_KEY` | Yes | Brevo (Sendinblue) API key for sending emails |
-| `BREVO_DEFAULT_SENDER_EMAIL` | Yes | Default sender email address |
-| `BREVO_DEFAULT_SENDER_NAME` | Yes | Default sender display name |
-| `SLACK_BOT_TOKEN` | Yes | Slack bot OAuth token |
-| `LINEAR_CLIENT_ID` | No | Linear OAuth application client ID |
-| `LINEAR_CLIENT_SECRET` | No | Linear OAuth application client secret |
-| `LINEAR_OAUTH_REDIRECT_URI` | No | OAuth callback URL |
-| `LINEAR_OAUTH_SCOPES` | No | OAuth scopes (default: `read,write,admin`) |
-| `OPEN_API_KEY` | No | OpenAI API key for AI features |
-| `OPENAI_DEDUP_MODEL` | No | Model for duplicate detection (default: `gpt-4o-mini`) |
-| `OPENAI_WEEKLY_REPORT_MODEL` | No | Model for weekly reports (default: `gpt-4o-mini`) |
-| `CRON_SECRET` | No | Shared secret for cron job authentication |
-| `CLIENT_INVITE_REDIRECT_URL` | No | URL clients are redirected to after accepting an invite |
-| `BASE_URL` | No | Public base URL for the API (used in webhooks) |
-| `FRONTEND_URL` | No | Frontend application URL |
+| Variable | Description |
+|----------|-------------|
+| `PORT` | Server port (default: `8000`) |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `SUPABASE_URL` | Supabase instance URL |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for admin operations) |
+| `SUPABASE_PROFILE_BUCKET` | Storage bucket name for profile images |
+| `BREVO_API_KEY` | Brevo (Sendinblue) API key for sending emails |
+| `BREVO_DEFAULT_SENDER_EMAIL` | Default sender email address |
+| `BREVO_DEFAULT_SENDER_NAME` | Default sender display name |
+| `SLACK_BOT_TOKEN` | Slack bot OAuth token |
+| `LINEAR_CLIENT_ID` | Linear OAuth application client ID |
+| `LINEAR_CLIENT_SECRET` | Linear OAuth application client secret |
+| `LINEAR_OAUTH_REDIRECT_URI` | OAuth callback URL |
+| `LINEAR_OAUTH_SCOPES` | OAuth scopes (default: `read,write,admin`) |
+| `OPEN_API_KEY` | OpenAI API key for AI features |
+| `OPENAI_DEDUP_MODEL` | Model for duplicate detection (default: `gpt-4o-mini`) |
+| `OPENAI_WEEKLY_REPORT_MODEL` | Model for weekly reports (default: `gpt-4o-mini`) |
+| `CRON_SECRET` | Shared secret for cron job authentication |
+| `CLIENT_INVITE_REDIRECT_URL` | URL clients are redirected to after accepting an invite |
+| `BASE_URL` | Public base URL for the API (used in webhooks) |
+| `FRONTEND_URL` | Frontend application URL |

@@ -7,13 +7,17 @@ description: "Overview of BugSense's database tables, relationships, and enums."
 
 ```
 auth.users (Supabase)
-  ├── users_data          (1:1 profile info)
-  ├── user_roles          (1:1 role assignment)
-  ├── linear_connections  (1:1 OAuth tokens)
-  └── projects            (1:N as team lead or creator)
+  ├── users_data              (1:1 profile info)
+  ├── user_roles              (1:1 role assignment)
+  ├── linear_connections      (1:1 Linear OAuth tokens)
+  ├── chatgpt_oauth_codes     (1:N ChatGPT authorization codes)
+  ├── chatgpt_oauth_tokens    (1:N ChatGPT access tokens)
+  ├── inbox_notifications     (1:N per-user notifications)
+  └── projects                (1:N as team lead or creator)
         ├── project_clients   (N:M clients per project)
         ├── issues            (1:N bugs)
         │     └── issue_comments  (1:N comments)
+        ├── inbox_notifications   (1:N per-project notifications)
         └── weekly_reports    (1:N reports)
 ```
 
@@ -81,7 +85,7 @@ Bug reports submitted by clients, synced with Linear.
 | `id` | UUID (PK) | Issue identifier |
 | `title` | text | Bug title |
 | `description` | text | Bug description (may include SDK payload) |
-| `platform` | enum | `web`, `testflight`, `android`, or `figma` |
+| `platform` | enum | `web`, `testflight`, `android`, `figma`, or `ios` |
 | `environment` | enum | `development`, `staging`, or `production` |
 | `app_version` | text | Application version |
 | `project_id` | UUID (FK) | Parent project |
@@ -174,11 +178,66 @@ Registered Linear webhook configurations.
 | `enabled` | boolean | Whether the webhook is active |
 | `created_at` | timestamptz | Record creation time |
 
+### `inbox_notifications`
+
+Per-user, per-project notifications triggered by system events (new comments, completed tasks, new reports).
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Notification identifier |
+| `user_id` | UUID (FK) | Recipient user |
+| `project_id` | UUID (FK) | Related project |
+| `type` | enum | `new_comment`, `task_completed`, or `new_report` |
+| `title` | text | Notification headline |
+| `body` | text | Notification detail text |
+| `entity_type` | text | Related entity type (e.g. `issue`, `report`) |
+| `entity_id` | text | Related entity ID |
+| `action_url` | text | Deep link URL |
+| `dedupe_key` | text (unique) | Prevents duplicate notifications |
+| `read_at` | timestamptz | When the user read the notification (null = unread) |
+| `created_at` | timestamptz | Record creation time |
+| `updated_at` | timestamptz | Last update time |
+
+### `chatgpt_oauth_codes`
+
+Authorization codes for the ChatGPT OAuth flow (PKCE).
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Code record identifier |
+| `code_hash` | text | SHA-256 hash of the authorization code |
+| `user_id` | UUID (FK) | The authenticating user |
+| `client_id` | text | OAuth client ID |
+| `redirect_uri` | text | Callback URL |
+| `scopes` | text[] | Granted scopes |
+| `code_challenge` | text | PKCE code challenge |
+| `code_challenge_method` | text | PKCE method (S256) |
+| `expires_at` | timestamptz | Code expiry (10 minutes) |
+| `consumed_at` | timestamptz | When the code was exchanged |
+| `created_at` | timestamptz | Record creation time |
+
+### `chatgpt_oauth_tokens`
+
+Access tokens issued for ChatGPT MCP sessions.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Token record identifier |
+| `token_hash` | text | SHA-256 hash of the access token |
+| `user_id` | UUID (FK) | Token owner |
+| `client_id` | text | OAuth client ID |
+| `scopes` | text[] | Granted scopes |
+| `expires_at` | timestamptz | Token expiry |
+| `last_used_at` | timestamptz | Last activity timestamp |
+| `revoked_at` | timestamptz | When the token was revoked (null = active) |
+| `created_at` | timestamptz | Record creation time |
+
 ## Enums
 
 | Enum | Values |
 |------|--------|
 | `user_role` | `admin`, `client` |
-| `issue_platform` | `web`, `testflight`, `android`, `figma` |
+| `issue_platform` | `web`, `testflight`, `android`, `figma`, `ios` |
 | `issue_environment` | `development`, `staging`, `production` |
 | `report_status` | `draft`, `approved` |
+| `inbox_notification_type` | `new_comment`, `task_completed`, `new_report` |
