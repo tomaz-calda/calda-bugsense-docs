@@ -13,20 +13,50 @@ BugSense uses [Brevo](https://www.brevo.com) (formerly Sendinblue) as its transa
 
 When an admin invites a new team lead, Supabase Auth sends the initial invite email. Additional onboarding or welcome emails may be sent through Brevo.
 
+<Frame>
+  <img
+    src="/images/Screenshot2026-03-17at20.01.42.png"
+    alt="Screenshot2026 03 17at20 01 42"
+    title="Screenshot2026 03 17at20 01 42"
+    className="mx-auto"
+    style={{ width:"56%" }}
+  />
+</Frame>
+
 ### Comment digest emails
 
 A scheduled job (`POST /api/v1/jobs/email-comments-digest`) sends digest emails to clients summarizing new comments on their issues since the last notification.
 
 This ensures clients who aren't actively checking BugSense still stay informed about issue progress.
 
+<Frame>
+  <img
+    src="/images/Screenshot2026-03-17at20.20.26.png"
+    alt="Screenshot2026 03 17at20 20 26"
+    title="Screenshot2026 03 17at20 20 26"
+    className="mx-auto"
+    style={{ width:"57%" }}
+  />
+</Frame>
+
 ### Weekly report emails
 
 When a weekly report is approved, BugSense sends an email to project clients with a summary and a link to view the full report.
 
+<Frame>
+  <img
+    src="/images/Screenshot2026-03-17at20.43.51.png"
+    alt="Screenshot2026 03 17at20 43 51"
+    title="Screenshot2026 03 17at20 43 51"
+    className="mx-auto"
+    style={{ width:"59%" }}
+  />
+</Frame>
+
 ## Configuration
 
-| Variable | Description |
-|----------|-------------|
-| `BREVO_API_KEY` | Your Brevo API key |
+| Variable                     | Description                                |
+| ---------------------------- | ------------------------------------------ |
+| `BREVO_API_KEY`              | Your Brevo API key                         |
 | `BREVO_DEFAULT_SENDER_EMAIL` | Sender email (e.g. `noreply@thecalda.com`) |
-| `BREVO_DEFAULT_SENDER_NAME` | Sender display name (e.g. `BugSense`) |
+| `BREVO_DEFAULT_SENDER_NAME`  | Sender display name (e.g. `BugSense`)      |
