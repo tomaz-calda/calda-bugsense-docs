@@ -19,12 +19,21 @@ BugSense uses OAuth 2.0 to connect to Linear:
     The admin is redirected to Linear's OAuth consent screen and grants access.
   </Step>
   <Step title="Callback">
-    Linear redirects back to `GET /api/v1/integrations/linear/callback` with an authorization code. BugSense exchanges this for an access token, stores it, and redirects the user to the frontend at `/app/linear/connected`.
+    Linear redirects back to `GET /api/v1/integrations/linear/callback` with an authorization code. BugSense exchanges this for an access token and refresh token, stores both, and redirects the user to the frontend at `/app/linear/connected`.
   </Step>
   <Step title="Webhook registration">
     BugSense automatically registers webhooks on the connected Linear team to receive events.
   </Step>
 </Steps>
+
+## Token refresh
+
+Linear issues access tokens that expire after **24 hours**. BugSense handles this automatically:
+
+- Every time an access token is needed, the backend checks the stored `access_token_expires_at` timestamp.
+- If the token is expired or within **5 minutes** of expiring, the backend uses the stored refresh token to obtain a new access token and refresh token pair from Linear.
+- Both tokens are persisted to the database so subsequent requests use the fresh credentials.
+- No manual re-authentication is required after the initial connection.
 
 ## What syncs
 

@@ -159,9 +159,10 @@ OAuth tokens for Linear integration.
 | `linear_user_id` | text | Linear user identifier |
 | `linear_user_email` | text | Linear user email |
 | `access_token` | text | OAuth access token |
+| `refresh_token` | text | OAuth refresh token (used to renew expired access tokens) |
 | `token_type` | text | Token type |
 | `scope` | text | Granted scopes |
-| `access_token_expires_at` | timestamptz | Token expiry |
+| `access_token_expires_at` | timestamptz | Token expiry (24 hours from issue) |
 | `connected_at` | timestamptz | When the connection was established |
 | `updated_at` | timestamptz | Last update time |
 
