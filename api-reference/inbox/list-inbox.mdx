@@ -1,0 +1,80 @@
+---
+title: "List inbox notifications"
+api: "GET /api/v1/projects/{projectId}/inbox"
+description: "Returns paginated inbox notifications for the authenticated user within a project."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>
+  UUID of the project.
+</ParamField>
+
+## Query parameters
+
+<ParamField query="limit" type="integer" default="20">
+  Number of notifications to return (1–100).
+</ParamField>
+
+<ParamField query="unreadOnly" type="boolean" default="false">
+  When `true`, returns only unread notifications.
+</ParamField>
+
+<ParamField query="cursor" type="string">
+  ISO 8601 datetime for cursor-based pagination. Returns notifications created before this timestamp.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of notification objects, sorted by newest first.
+
+  <Expandable title="notification object">
+    <ResponseField name="id" type="string">Notification UUID</ResponseField>
+    <ResponseField name="userId" type="string">Recipient user UUID</ResponseField>
+    <ResponseField name="projectId" type="string">Project UUID</ResponseField>
+    <ResponseField name="type" type="string">`new_comment`, `task_completed`, or `new_report`</ResponseField>
+    <ResponseField name="title" type="string">Notification headline</ResponseField>
+    <ResponseField name="body" type="string">Notification detail text</ResponseField>
+    <ResponseField name="entityType" type="string | null">Related entity type (e.g. `issue`, `report`)</ResponseField>
+    <ResponseField name="entityId" type="string | null">Related entity ID</ResponseField>
+    <ResponseField name="actionUrl" type="string | null">Deep link URL</ResponseField>
+    <ResponseField name="dedupeKey" type="string">Deduplication key</ResponseField>
+    <ResponseField name="readAt" type="string | null">ISO 8601 timestamp when read, or `null` if unread</ResponseField>
+    <ResponseField name="createdAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="updatedAt" type="string">ISO 8601 timestamp</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "userId": "660e9500-f30c-52e5-b827-557766550000",
+      "projectId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "type": "new_comment",
+      "title": "New comment on BUG-42",
+      "body": "John Doe commented: \"Fixed in the latest build\"",
+      "entityType": "issue",
+      "entityId": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "actionUrl": "/app/projects/b2c3d4e5/issues/c3d4e5f6",
+      "dedupeKey": "comment:c3d4e5f6:660e9500",
+      "readAt": null,
+      "createdAt": "2026-03-19T14:30:00.000Z",
+      "updatedAt": "2026-03-19T14:30:00.000Z"
+    }
+  ]
+}
+```
+</ResponseExample>
+
+## Notes
+
+- Notifications are scoped to projects the user has access to (as team lead or assigned client).
+- Use the `cursor` parameter with the `createdAt` value of the last notification to paginate through results.

@@ -165,6 +165,19 @@ OAuth tokens for Linear integration.
 | `connected_at` | timestamptz | When the connection was established |
 | `updated_at` | timestamptz | Last update time |
 
+### `linear_oauth_states`
+
+Temporary storage for Linear OAuth state parameters used for CSRF protection.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `state` | text (PK) | Random state token |
+| `user_id` | UUID (FK) | The admin user initiating the OAuth flow |
+| `expires_at` | timestamptz | State expiry (10 minutes after creation) |
+| `created_at` | timestamptz | Record creation time |
+
+States are validated and consumed during the [callback](/api-reference/integrations/linear-callback).
+
 ### `linear_webhooks`
 
 Registered Linear webhook configurations.

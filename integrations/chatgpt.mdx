@@ -13,10 +13,16 @@ Access is scoped to the user's role — admins see all projects, clients only se
 
 <Steps>
   <Step title="Add BugSense to ChatGPT">
-    In ChatGPT, add BugSense as a remote MCP server using the backend URL. ChatGPT discovers the OAuth and MCP endpoints automatically via `.well-known` metadata.
+    In ChatGPT, go to App tab and search for CaldaBugSense-dev and connect it.
+    <Frame>
+      <img src="/images/chatgpt/connect-1.png" alt="connect CaldaBugSense-dev in ChatGPT" style={{ width:"75%" }} />
+    </Frame>
   </Step>
   <Step title="Authorize with your BugSense account">
-    ChatGPT redirects to the BugSense OAuth authorize page. You sign in with your email and password, then grant ChatGPT read access to your projects and issues.
+    ChatGPT redirects to the BugSense OAuth authorize page. You sign in with the same email and password as your BugSense account.
+    <Frame>
+      <img src="/images/chatgpt/connect-2.png" alt="authorize with your BugSense account in ChatGPT" style={{ width:"50%" }} />
+    </Frame>
   </Step>
   <Step title="Ask questions">
     ChatGPT can now call BugSense tools to answer questions like "What are the high-priority bugs in my project?" or "Give me a health summary for this week."
@@ -25,55 +31,108 @@ Access is scoped to the user's role — admins see all projects, clients only se
 
 ## Available tools
 
-ChatGPT can call these tools through the MCP protocol:
+ChatGPT can call these tools through the MCP protocol.
 
-| Tool | Description |
-|------|-------------|
-| `list_projects` | List all BugSense projects with their name, team lead, and active issue count |
-| `list_issues` | List issues for a project with filters (status, priority, platform, environment). Returns up to 50 issues |
-| `get_issue` | Get full details of a specific issue including its entire comment thread. Look up by UUID or Linear ticket number (e.g. `BUG-42`) |
-| `project_summary` | Health snapshot: total active issues, breakdown by status/priority/platform, and activity over the last 7 days |
+### `list_projects`
 
-## OAuth flow
+List all BugSense projects with their name, team lead, and active issue count. Use this first to discover available projects before querying issues.
 
-BugSense implements a standard OAuth 2.0 Authorization Code flow with PKCE (S256) for ChatGPT:
+<Frame>
+  <img src="/images/chatgpt/list-projects.png" alt="list_projects tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
 
-1. ChatGPT redirects the user to `GET /api/v1/chatgpt/oauth/authorize` with PKCE parameters.
-2. The user signs in with their BugSense email and password on a server-rendered form.
-3. On success, the server issues an authorization code and redirects back to ChatGPT.
-4. ChatGPT exchanges the code for an access token via `POST /api/v1/chatgpt/oauth/token`.
-5. The access token is used in `Authorization: Bearer` headers for MCP requests.
+### `list_issues`
 
-### Scopes
+List issues for a project with filters (status, priority, platform, environment). Returns up to 50 issues sorted by newest first.
 
-| Scope | Description |
-|-------|-------------|
-| `projects:read` | List and view projects |
-| `issues:read` | List and view issues and comments |
-| `reports:read` | View project summaries |
+<Frame>
+  <img src="/images/chatgpt/list-issues.png" alt="list_issues tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
 
-All scopes are granted by default if none are explicitly requested.
+### `get_issue`
 
-### Token lifecycle
+Get full details of a specific issue including its entire comment thread. Look up by either the issue UUID or the Linear ticket number (e.g. `BUG-42`).
 
-- Access tokens are valid for 1 hour (configurable via `CHATGPT_OAUTH_ACCESS_TOKEN_TTL_SECONDS`)
-- Authorization codes expire after 10 minutes and are single-use
-- Tokens can be revoked server-side
+<Frame>
+  <img src="/images/chatgpt/get-issue.png" alt="get_issue tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
 
-## Well-known endpoints
+### `project_summary`
 
-The backend serves OAuth and MCP discovery metadata:
+Health snapshot of a project: total active issues, breakdown by status, priority, and platform, plus activity over the last 7 days.
 
-| Endpoint | Purpose |
-|----------|---------|
-| `/.well-known/oauth-authorization-server` | OAuth server metadata (endpoints, grant types, PKCE support) |
-| `/.well-known/oauth-protected-resource` | MCP resource metadata (resource URL, scopes) |
-| `/.well-known/openai-apps-challenge` | OpenAI domain verification |
+<Frame>
+  <img src="/images/chatgpt/project-summary.png" alt="project_summary tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
 
-## Configuration
+### `create_issue`
 
-| Variable | Description |
-|----------|-------------|
-| `CHATGPT_OAUTH_CLIENT_ID` | Expected OAuth client ID (optional — if set, only this client ID is accepted) |
-| `CHATGPT_OAUTH_ACCESS_TOKEN_TTL_SECONDS` | Access token lifetime in seconds (default: `3600`) |
-| `OPENAI_DOMAIN_VERIFICATION_TOKEN` | Token for OpenAI domain ownership verification |
+Create a new bug report in a project. The issue syncs to Linear automatically. Requires a project ID, title, and description. Platform defaults to `web` and environment to `production` if not specified.
+
+<Frame>
+  <img src="/images/chatgpt/create-issue-1.png" alt="create_issue tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
+
+<Frame>
+  <img src="/images/chatgpt/create-issue-2.png" alt="create_issue tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
+
+### `create_feature`
+
+Create a new feature request. Works like `create_issue` but automatically adds a "Feature" label in Linear.
+
+<Frame>
+  <img src="/images/chatgpt/create-feature-1.png" alt="create_feature tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
+
+<Frame>
+  <img src="/images/chatgpt/create-feature-1.png" alt="create_feature tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
+
+### `add_comment`
+
+Add a comment to an existing issue (by UUID or ticket number). The comment syncs to Linear automatically.
+
+<Frame>
+  <img src="/images/chatgpt/add-comment.png" alt="add_comment tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
+
+### `list_reports`
+
+List weekly reports for a project with headline, period, status, and key metrics. Sorted by most recent first.
+
+<Frame>
+  <img src="/images/chatgpt/list-reports.png" alt="list_reports tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
+
+### `get_report`
+
+Get full details of a weekly report including headline, summary, highlights, risks, next steps, metrics, and top issues.
+
+<Frame>
+  <img src="/images/chatgpt/get-report.png" alt="get_report tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
+
+### `search_issues`
+
+Full-text search across issue titles and descriptions. Can search within a specific project or across all accessible projects.
+
+<Frame>
+  <img src="/images/chatgpt/search-issues.png" alt="search_issues tool in ChatGPT" style={{ width:"50%" }} />
+</Frame>
+
+## MCP prompts
+
+The server also exposes guided prompts that walk the user through multi-step flows.
+
+### `report_bug`
+
+Guided flow to report a new bug — walks the user through providing project, title, description, platform, and environment step by step.
+
+### `request_feature`
+
+Guided flow to request a new feature — collects project, title, and description step by step.
+
+<Note>
+Both prompts accept an optional `projectId` argument. If omitted, the user is asked to pick a project first.
+</Note>

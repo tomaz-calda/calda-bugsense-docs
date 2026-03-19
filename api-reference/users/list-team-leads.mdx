@@ -1,0 +1,47 @@
+---
+title: "List team leads"
+api: "GET /api/v1/team-leads"
+description: "Returns all team lead accounts. Admin only."
+---
+
+## Authentication
+
+<Icon icon="shield" /> Requires **admin** role
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of team lead profile objects.
+
+  <Expandable title="team lead object">
+    <ResponseField name="id" type="string">User UUID</ResponseField>
+    <ResponseField name="email" type="string">Email address</ResponseField>
+    <ResponseField name="firstName" type="string | null">First name</ResponseField>
+    <ResponseField name="lastName" type="string | null">Last name</ResponseField>
+    <ResponseField name="profileImagePath" type="string | null">Avatar storage path</ResponseField>
+    <ResponseField name="active" type="boolean">Whether the account is active</ResponseField>
+    <ResponseField name="createdAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="updatedAt" type="string">ISO 8601 timestamp</ResponseField>
+    <ResponseField name="role" type="string">`admin`</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": [
+    {
+      "id": "660e9500-f30c-52e5-b827-557766550000",
+      "email": "jane@agency.com",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "profileImagePath": null,
+      "active": true,
+      "createdAt": "2026-01-15T10:00:00.000Z",
+      "updatedAt": "2026-03-10T14:30:00.000Z",
+      "role": "admin"
+    }
+  ]
+}
+```
+</ResponseExample>

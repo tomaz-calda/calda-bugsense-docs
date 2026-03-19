@@ -1,0 +1,40 @@
+---
+title: "Mark all notifications read"
+api: "POST /api/v1/projects/{projectId}/inbox/read-all"
+description: "Marks all unread inbox notifications as read for the authenticated user within a project."
+---
+
+## Authentication
+
+<Icon icon="lock" /> Requires `Authorization: Bearer <token>`
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>
+  UUID of the project.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="updatedCount" type="integer">
+      Number of notifications that were marked as read.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "updatedCount": 5
+  }
+}
+```
+</ResponseExample>
+
+## Notes
+
+- Returns `updatedCount: 0` if there are no unread notifications.
+- Only marks notifications belonging to the authenticated user within the specified project.

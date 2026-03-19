@@ -20,11 +20,11 @@ This endpoint does not require authentication. It is called by Linear's OAuth re
 
 ## Behavior
 
-1. Validates the `state` parameter against stored OAuth states
+1. Validates the `state` parameter against stored OAuth states (states expire after 10 minutes)
 2. Exchanges the `code` for an access token via Linear's token endpoint
-3. Stores the access token in the `linear_connections` table
+3. Stores the access token in the `linear_connections` table (upserts if a connection already exists)
 4. Registers webhooks on the connected Linear team
-5. Redirects the user to the frontend application
+5. Redirects the user to `{FRONTEND_URL}/app/linear/connected` via `302` redirect
 
 ## Error handling
 

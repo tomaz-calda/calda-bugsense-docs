@@ -19,7 +19,7 @@ BugSense uses OAuth 2.0 to connect to Linear:
     The admin is redirected to Linear's OAuth consent screen and grants access.
   </Step>
   <Step title="Callback">
-    Linear redirects back to `GET /api/v1/integrations/linear/callback` with an authorization code. BugSense exchanges this for an access token and stores it.
+    Linear redirects back to `GET /api/v1/integrations/linear/callback` with an authorization code. BugSense exchanges this for an access token, stores it, and redirects the user to the frontend at `/app/linear/connected`.
   </Step>
   <Step title="Webhook registration">
     BugSense automatically registers webhooks on the connected Linear team to receive events.
@@ -32,7 +32,8 @@ BugSense uses OAuth 2.0 to connect to Linear:
 
 | Event | Action in Linear |
 |-------|-----------------|
-| Client creates an issue | New Linear issue created with "Client view" label |
+| Client creates an issue | New Linear issue created with "BugSense - Client View" label. Platform, environment, and app version metadata are appended to the issue description |
+| Client creates a duplicate issue | "BugSense - Possible Duplicate" label is automatically applied |
 | Client adds a comment | Comment mirrored to the Linear issue |
 
 ### Linear → BugSense (via webhooks)
@@ -45,15 +46,27 @@ BugSense uses OAuth 2.0 to connect to Linear:
 | Attachment added | Attachment reference stored |
 | Project updated | Project name synced |
 
-## Webhook verification
+## Issue metadata
 
-Linear signs webhook payloads with HMAC-SHA256. BugSense verifies each incoming webhook against the stored `signing_secret` for the team. Unverified requests are rejected with `401`.
+When BugSense creates an issue in Linear, it appends a metadata block to the issue description:
 
-## Configuration
+```
+---
 
-| Variable | Description |
-|----------|-------------|
-| `LINEAR_CLIENT_ID` | OAuth application client ID |
-| `LINEAR_CLIENT_SECRET` | OAuth application client secret |
-| `LINEAR_OAUTH_REDIRECT_URI` | Callback URL (e.g. `https://api.bugsense.app/api/v1/integrations/linear/callback`) |
-| `LINEAR_OAUTH_SCOPES` | Requested scopes (default: `read,write,admin`) |
+**Platform:** web
+**Environment:** production
+**App Version:** 1.2.3
+```
+
+This metadata is only added when at least one of platform, environment, or app version is present.
+
+## Labels
+
+BugSense manages two special labels on Linear teams:
+
+| Label | Color | Purpose |
+|-------|-------|---------|
+| **BugSense - Client View** | `#4B7BEC` | Applied to issues visible to clients in the BugSense dashboard |
+| **BugSense - Possible Duplicate** | `#a20000` | Automatically applied when an issue is flagged as a potential duplicate |
+
+Labels are created automatically on the Linear team if they don't already exist.

@@ -18,7 +18,7 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": ["index"]
+            "pages": ["index", "how-to-test"]
           },
           {
             "group": "Client apps",
@@ -37,6 +37,10 @@
           {
             "group": "Development",
             "pages": ["architecture", "authentication", "data-model", "quickstart"]
+          },
+          {
+            "group": "Roadmap",
+            "pages": ["roadmap"]
           }
         ]
       },
@@ -53,7 +57,10 @@
               "api-reference/users/get-me",
               "api-reference/users/update-me",
               "api-reference/users/update-profile-image",
-              "api-reference/users/invite-team-lead"
+              "api-reference/users/invite-team-lead",
+              "api-reference/users/list-team-leads",
+              "api-reference/users/update-team-lead",
+              "api-reference/users/delete-team-lead"
             ]
           },
           {
@@ -88,6 +95,14 @@
               "api-reference/reports/get-report",
               "api-reference/reports/update-report",
               "api-reference/reports/approve-report"
+            ]
+          },
+          {
+            "group": "Inbox",
+            "pages": [
+              "api-reference/inbox/list-inbox",
+              "api-reference/inbox/mark-read",
+              "api-reference/inbox/mark-all-read"
             ]
           },
           {

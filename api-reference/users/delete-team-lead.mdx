@@ -1,0 +1,41 @@
+---
+title: "Delete team lead"
+api: "DELETE /api/v1/team-leads/{teamLeadId}"
+description: "Permanently deletes a team lead account. Admin only."
+---
+
+## Authentication
+
+<Icon icon="shield" /> Requires **admin** role
+
+## Path parameters
+
+<ParamField path="teamLeadId" type="string" required>
+  UUID of the team lead to delete.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="success" type="boolean">
+      `true` if the team lead was deleted.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "data": {
+    "success": true
+  }
+}
+```
+</ResponseExample>
+
+## Notes
+
+- You cannot delete your own account. Attempting to do so returns `400`.
+- The target user must have the `admin` role. Returns `404` if the user is not a team lead.
+- Deletion removes the user from Supabase Auth entirely, cascading to `users_data` and `user_roles`.

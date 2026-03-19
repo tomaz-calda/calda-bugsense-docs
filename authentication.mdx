@@ -84,11 +84,3 @@ Clients are invited as part of project creation and receive the **client** role.
 <Note>
   A client can only be assigned to one project. Admin users cannot be added as project clients.
 </Note>
-
-## Token lifecycle
-
-Tokens are issued by Supabase Auth and follow standard JWT conventions:
-
-- Tokens are short-lived (configurable in Supabase)
-- Supabase client SDKs handle automatic token refresh
-- The backend validates tokens using `supabase.auth.getClaims()` — no local secret verification is needed
