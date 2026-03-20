@@ -9,18 +9,34 @@ The Web SDK (`@calda/bug-sdk`) adds a floating bug-report button to your web app
 
 ## Installation
 
+Add the package to your `package.json` dependencies from GitHub:
+
+```json
+{
+  "dependencies": {
+    "@calda/bug-sdk": "git+https://github.com/matevzCalda/web-bug-report-sdk.git#1.2.0"
+  }
+}
+```
+
+<Note>
+Always check the [latest tag](https://github.com/matevzCalda/web-bug-report-sdk/tags) and pin your dependency to it.
+</Note>
+
+Then install:
+
 <CodeGroup>
 
 ```bash npm
-npm install @calda/bug-sdk
+npm install
 ```
 
 ```bash pnpm
-pnpm add @calda/bug-sdk
+pnpm install
 ```
 
 ```bash yarn
-yarn add @calda/bug-sdk
+yarn install
 ```
 
 </CodeGroup>
@@ -37,17 +53,17 @@ Create a client component that runs once on mount:
 "use client";
 
 import { useEffect } from "react";
-import CaldaBug from "@calda/bug-sdk";
+import { CaldaBug } from "@calda/bug-sdk";
 
 export default function CaldaInit() {
   useEffect(() => {
     CaldaBug.init({
       endpoint: "https://calda-bugsense-backend.onrender.com/api/v1/issues",
-      apiKey: "YOUR_PROJECT_API_KEY",
-      env: "production",
+      apiKey: process.env.NEXT_PUBLIC_CALDA_BUG_API_KEY ?? "YOUR_PROJECT_API_KEY",
+      env: process.env.NODE_ENV === "production" ? "prod" : "staging",
       release: "myapp@1.0.0",
       app: { name: "My App", version: "1.0.0", build: "1" },
-      session: { sessionId: crypto.randomUUID() },
+      session: { sessionId: `sess_${Date.now()}` },
     });
   }, []);
 
@@ -61,6 +77,7 @@ In your root layout, wrap your app with the provider and add the floating button
 
 ```tsx
 import { CaldaBugProvider, CaldaBugFloatingButton } from "@calda/bug-sdk/react";
+import CaldaInit from "./calda-init";
 
 export default function RootLayout({ children }) {
   return (
@@ -69,7 +86,7 @@ export default function RootLayout({ children }) {
         <CaldaInit />
         <CaldaBugProvider>
           {children}
-          <CaldaBugFloatingButton />
+          <CaldaBugFloatingButton enabled={true} />
         </CaldaBugProvider>
       </body>
     </html>
@@ -77,15 +94,27 @@ export default function RootLayout({ children }) {
 }
 ```
 
-### 3. Enable network capture (optional)
+### 3. Copy the logo asset
 
-Wrap the global `fetch` to capture network requests:
+```bash
+cp node_modules/@calda/bug-sdk/assets/calda_bug_logo.png public/calda_bug_logo.png
+```
+
+Then pass the URL to the floating button:
+
+```tsx
+<CaldaBugFloatingButton enabled={true} logoUrl="/calda_bug_logo.png" />
+```
+
+### 4. Enable network capture (optional)
+
+Replace the global `fetch` to capture network requests:
 
 ```tsx
 "use client";
 
 import { useEffect } from "react";
-import CaldaBug from "@calda/bug-sdk";
+import { CaldaBug } from "@calda/bug-sdk";
 
 export default function CaldaInit() {
   useEffect(() => {
@@ -104,7 +133,7 @@ You can pass a `redactUrl` function to strip sensitive query parameters:
 
 ```ts
 window.fetch = CaldaBug.createFetchWrapper(
-  (url) => url.split("?")[0]
+  (url) => url.split("?")[0] ?? url
 );
 ```
 
@@ -113,8 +142,8 @@ window.fetch = CaldaBug.createFetchWrapper(
 ```typescript
 CaldaBug.init({
   endpoint: string;           // Backend ingest URL (required)
-  apiKey: string;             // Fallback auth key (required)
-  env: string;                // "staging" | "production" (required)
+  apiKey: string;             // API key for auth (required)
+  env: string;                // "staging" | "prod" (required)
   release: string;            // e.g. "myapp@1.0.0" (required)
   app: {                      // App metadata (required)
     name: string;
@@ -154,14 +183,14 @@ All events are stored in a ring buffer (default capacity: 800). Older events are
 
 ## Navigation tracking
 
-For Next.js apps, use the built-in router observer:
+For Next.js apps, use a route tracker component:
 
 ```tsx
 "use client";
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import CaldaBug from "@calda/bug-sdk";
+import { CaldaBug } from "@calda/bug-sdk";
 
 export function RouteTracker() {
   const pathname = usePathname();
@@ -187,6 +216,7 @@ Add custom events to the buffer at any time:
 
 ```ts
 CaldaBug.addEvent({
+  t: Date.now() - startTime,
   type: "custom",
   data: { action: "checkout", cartTotal: 49.99 },
 });
@@ -216,6 +246,25 @@ CaldaBug.setStateSnapshotProvider(() => ({
 | `CaldaBug.setStateSnapshotProvider(fn)` | Register an app-state snapshot function |
 | `CaldaBug.createFetchWrapper(redactUrl?)` | Create a wrapped `fetch` that logs network events |
 | `CaldaBug.report(params)` | Manually build and upload a report |
+| `CaldaBug.config` | Get the current configuration |
+
+### Manual report
+
+```ts
+const result = await CaldaBug.report({
+  userMessage: "Button doesn't respond on click",
+  screenshotPng: screenshotBytes,       // Uint8Array (optional)
+  attachments: [                         // Optional
+    { type: "video", data: videoBytes, filename: "recording.webm" },
+  ],
+  extra: { customField: "value" },       // Optional extra data
+  env: "staging",                        // Optional override
+  token: myAuthToken,                    // Optional auth override
+});
+
+console.log("Report ID:", result.reportId);
+console.log("View at:", result.viewerUrl);
+```
 
 ## Report payload
 
@@ -238,11 +287,11 @@ The JSON payload includes:
   "env": "production",
   "release": "myapp@1.0.0",
   "app": { "name": "My App", "version": "1.0.0", "build": "1" },
-  "device": { "platform": "web", "os": "macOS", "browser": "Chrome 133", ... },
+  "device": { "platform": "web", "os": "macOS", "browser": "Chrome 133", "..." : "..." },
   "session": { "sessionId": "..." },
   "userMessage": "Button doesn't respond on click",
   "reproductionSummary": "Navigated to /settings, clicked Save button, ...",
-  "events": [ ... ],
+  "events": [ "..." ],
   "attachments": { "screenshot": true, "count": 2 }
 }
 ```
@@ -254,27 +303,47 @@ The SDK automatically redacts sensitive data from network captures and events:
 ```typescript
 CaldaBug.init({
   redaction: {
-    keyBlocklist: ["authorization", "password", "token", "secret"],
-    queryBlocklist: ["token", "auth", "jwt", "api_key"],
-    valuePatterns: [/Bearer\s+\S+/gi],
-    urlBlocklist: [/\/auth\//],
+    dropQuery: true,                                          // Strip all query params
+    queryAllowlist: [],                                       // Query params to keep
+    queryBlocklist: ["token", "auth", "password", "code", "session", "jwt"],
+    urlBlocklist: [/\/auth\//],                               // URLs to skip
+    keyBlocklist: ["authorization", "cookie", "set-cookie", "password", "secret", "token"],
+    valuePatterns: [/Bearer\s+\S+/gi],                        // Value patterns to redact
     replacement: "[REDACTED]",
   },
 });
 ```
 
-Default redaction is applied even without explicit configuration.
+Default redaction is applied even without explicit configuration, covering common auth headers and tokens.
 
 ## React components
 
 Exported from `@calda/bug-sdk/react`:
 
-| Component | Description |
-|-----------|-------------|
-| `CaldaBugProvider` | Context wrapper (place at app root) |
-| `CaldaBugFloatingButton` | Floating action button with screenshot, recording, and report UI |
-| `ReportSheet` | Report form dialog (used internally by the floating button) |
-| `LoginScreen` | Supabase login dialog for authenticating reporters |
+| Component | Props | Description |
+|-----------|-------|-------------|
+| `CaldaBugProvider` | `children` | Context wrapper (place at app root) |
+| `CaldaBugFloatingButton` | `enabled?`, `captureScreenshot?`, `logoUrl?`, `loginImageUrl?` | Floating action button with screenshot, recording, and report UI |
+| `ReportSheet` | `onClose`, `onSent?`, `onError?`, `consoleLines`, `screenshotDataUrl?`, `attachments?`, `reproductionSummary?`, `deviceInfo?`, `appContext?` | Report form dialog (used internally by the floating button) |
+| `LoginScreen` | `onSuccess`, `onClose`, `imageUrl?` | Supabase login dialog for authenticating reporters |
+
+### CaldaBugFloatingButton
+
+```tsx
+<CaldaBugFloatingButton
+  enabled={true}                          // Show/hide the button
+  captureScreenshot={true}                // Enable screenshot capture
+  logoUrl="/calda_bug_logo.png"           // Custom logo URL
+  loginImageUrl="/custom-login-image.png" // Custom login screen image
+/>
+```
+
+The button appears as a black circle (48×48px) with a white border in the bottom-right corner. Menu options include:
+- **Take a screenshot and report** — captures the viewport and opens the report sheet
+- **Start recording (max 30s)** — starts screen recording; button border turns red; tap again to stop
+- **Settings** — manage user, log out
+
+The report sheet includes a rich text editor with formatting (bold, italic, strikethrough), platform selector (Web, Apple, Android, Figma), and environment selector (STAGING, PRODUCTION).
 
 ## User authentication
 
