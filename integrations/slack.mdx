@@ -11,7 +11,7 @@ BugSense integrates with Slack to keep your team notified about new bugs and wee
 
 ### New issue digests
 
-When new bugs are submitted by clients, BugSense sends a digest of unnotified issues to the project's linked Slack channel. This runs as a scheduled cron job via `POST /api/v1/jobs/slack-issue-digest`.
+When new bugs are submitted by clients, BugSense sends a digest of unnotified issues to the project's linked Slack channel. This runs as a scheduled cron job via `POST /api/v1/jobs/slack-issue-digest`. This happens every 30 minutes.
 
 <Frame>
   <img
@@ -23,7 +23,7 @@ When new bugs are submitted by clients, BugSense sends a digest of unnotified is
 
 ### Weekly report notifications
 
-When a weekly report is generated, BugSense sends a DM to relevant team members via Slack notifying them that a new report is ready for review.
+When a weekly report is generated, BugSense sends a DM to relevant team members via Slack notifying them that a new report is ready for review. This happens every Monday at 09:00 UTC.
 
 <Frame>
   ![Screenshot2026 03 17at20 00 56](/images/Screenshot2026-03-17at20.00.56.png)

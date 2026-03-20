@@ -1,4 +1,189 @@
 ---
 title: "How to Test"
-description: "Guide for testing BugSense."
+description: "A walkthrough for testing BugSense — follow along step by step, no technical setup required."
 ---
+
+This guide walks you through testing BugSense from start to finish. Each section covers one part of the workflow so you can try things out in order.
+
+## Before you start
+
+You will need:
+
+- A **team lead account** — log-in credentials were provided to you in the .md file in the submitted form
+- A **Linear workspace** already connected to the dashboard — this was already done for you
+- A fresh linear project - already created in the **Delfincki** team, named **Calda BugSense Project**
+
+Open the [BugSense dashboard](https://calda-bugsense-frontend.vercel.app/) in your browser to get started.
+
+## Create a new project
+
+<Note>
+  A project was already created for you because of the SDK integration. You can skip this step or test for different projects, in this case bug reporting will work only from the BugSense dashboard.
+</Note>
+
+A project connects a Linear project with one or more **client accounts**. The team lead creates the project and invites clients, who can then log in and start reporting bugs.
+
+<Steps>
+  <Step title="Log in as team lead">
+    Go to the [login page](https://calda-bugsense-frontend.vercel.app/login) and sign in with the team lead credentials. After logging in you will see the **All projects** page.
+  </Step>
+  <Step title="Click Add new project">
+    Click the **Add new project** button. A dialog will open where you can set up the project.
+  </Step>
+  <Step title="Pick a Linear project">
+    Open the **Project name** dropdown and select the Linear project you want to link. The list shows all projects from the connected Linear workspace.
+  </Step>
+  <Step title="Add client accounts">
+    Under **Clients**, enter the **email**, **first name**, and **last name** of the person you want to invite as a client. All three fields are required.
+
+    You can invite multiple clients — click **Add client** to add another row.
+
+    Each client will receive an email invitation. When they click the link in the email, they will be asked to set a password. After that they can log in to the dashboard and use the bug-reporting SDKs.
+  </Step>
+  <Step title="Add a Slack channel (optional)">
+    If you want bug notifications sent to a Slack channel, enter the channel ID in the **Internal Slack Channel ID** field. This ID is located at the bottom of channel details pop-up.
+  </Step>
+  <Step title="Create the project">
+    Click **Create project**. The system will:
+
+    - Link the selected Linear project to BugSense
+    - Send invitation emails to all the clients you added
+    - Give those clients access to this project
+    - Sync issues and comments between BugSense and Linear
+
+    The new project now appears in the **All projects** table.
+  </Step>
+</Steps>
+
+<Note>
+  After a client clicks the invitation link in their email, they are taken to a **Set password** page. Once they set their password, they can log in to the [dashboard](https://calda-bugsense-frontend.vercel.app/login) or use the [Web SDK](/sdks/web) / [Flutter SDK](/sdks/flutter) to report bugs.
+</Note>
+
+---
+
+## Report bugs using the Flutter SDK
+
+The Flutter SDK adds a floating bug button to a mobile app. When a client taps it, they can take a screenshot or record their screen and submit a bug report — all without leaving the app.
+
+<Steps>
+  <Step title="Open the demo app">
+    Launch the Flutter demo app on your device or emulator (**Calda Puzzle** on TestFlight). You should see a small floating bug button in the corner of the screen.
+  </Step>
+  <Step title="Tap the bug button">
+    Tap the floating button. If you are not logged in yet, a login screen will appear. Sign in with the **client credentials** (the same email and password from the invite).
+  </Step>
+  <Step title="Choose how to report">
+    After logging in, a menu appears with these options:
+
+    - **Take a screenshot and report** — captures what is currently on screen and opens the report form
+    - **Start recording (max 30s)** — begins a screen recording. The button turns red while recording. Tap it again to stop, then the report form opens with the recording attached
+    - **Settings** — view your account or log out
+  </Step>
+  <Step title="Fill in the report">
+    The report form asks for:
+
+    - **Title** — a short summary of the bug
+    - **Description** — explain what happened, what you expected, and how to reproduce it (supports bold, italic, and lists)
+    - **Platform** — select the platform (Web, iOS, Android, or Figma)
+    - **Environment** — choose Staging or Production
+
+    The screenshot or recording you captured is already attached. You can review it before submitting.
+  </Step>
+  <Step title="Submit">
+    Tap **Create issue**. The bug report is sent to BugSense and automatically synced to Linear. You can find it on the kanban board in the dashboard of the connected Linear project.
+  </Step>
+</Steps>
+
+---
+
+## Report bugs using the Web SDK
+
+The Web SDK works the same way as the Flutter SDK, but inside a web application. It adds a floating bug button to the page.
+
+<Steps>
+  <Step title="Open the web app">
+    Open the web application that has the BugSense SDK integrated ([try here](TODO)). You should see a floating bug button.
+  </Step>
+  <Step title="Click the bug button">
+    Click the floating button. If you are not logged in, a login dialog will appear. Sign in with your **client credentials**.
+  </Step>
+  <Step title="Choose how to report">
+    After logging in, you get the same options:
+
+    - **Take a screenshot and report** — captures the current page
+    - **Start recording (max 30s)** — records your screen, then opens the report form with the recording attached
+    - **Settings** — manage your account
+  </Step>
+  <Step title="Fill in the report">
+    The report form includes:
+
+    - **Title** — short summary of the bug
+    - **Description** — what happened, what you expected, steps to reproduce
+    - **Platform** and **Environment** selectors
+
+    Your screenshot or recording is already attached.
+  </Step>
+  <Step title="Submit">
+    Click **Create issue**. The report is sent to BugSense and synced to Linear.
+  </Step>
+</Steps>
+
+---
+
+## Report bugs using the BugSense dashboard
+
+Clients can also report bugs directly from the dashboard without using any SDK.
+
+<Steps>
+  <Step title="Log in as a client">
+    Go to the [login page](https://calda-bugsense-frontend.vercel.app/login) and sign in with the **client credentials**. You will see a kanban board showing the issues for your project, organized into columns: **To do**, **In progress**, **Done**, and **Canceled**. Only issues with label **BugSense - Client view** will be visible to the clients.
+  </Step>
+  <Step title="Click Add new ticket">
+    Click the **Add new ticket** button at the top of the page.
+  </Step>
+  <Step title="Fill in the ticket">
+    A dialog opens with the following fields:
+
+    - **Platform** — choose Web, Figma, iOS, or Android
+    - **Environment** — choose Staging or Production
+    - **Title** — a short summary of the bug
+    - **Description** — a rich text editor where you can describe the issue in detail (supports headings, bold, italic, and lists)
+  </Step>
+  <Step title="Submit the ticket">
+    Click **Create issue**. The ticket appears on the kanban board and is automatically synced to Linear.
+  </Step>
+</Steps>
+
+<Tip>
+  You can click any ticket on the kanban board to open its details. From there you can view the full description, see attachments, and leave comments — comments also sync with Linear.
+</Tip>
+
+---
+
+## Report bugs using ChatGPT
+
+BugSense is also connected to ChatGPT as a remote app. You can use natural language to browse projects, ask about issues, and even create new bug reports — all from within ChatGPT.
+
+<Steps>
+  <Step title="Connect BugSense in ChatGPT">
+    In ChatGPT, go to the **App** tab, search for **CaldaBugSense-dev**, and click to connect it.
+  </Step>
+  <Step title="Log in with your BugSense account">
+    ChatGPT will ask you to authorize the connection. Sign in with the same **email and password** you use for the BugSense dashboard.
+  </Step>
+  <Step title="Start asking questions">
+    Once connected, you can ask ChatGPT things like:
+
+    - *"What are the open bugs in my project?"*
+    - *"Show me the high-priority issues"*
+    - *"Give me a health summary of the project"*
+    - *"Create a new bug: the login button doesn't work on mobile"*
+    - *"Add a comment to issue BUG-42"*
+
+    ChatGPT will call BugSense behind the scenes and show you the results.
+  </Step>
+</Steps>
+
+<Tip>
+  You can also ask ChatGPT to create feature requests, view weekly reports, or search across all your issues by keyword. This is described in more detail in the [ChatGPT integration](/integrations/chatgpt) documentation.
+</Tip>

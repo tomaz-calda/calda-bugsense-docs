@@ -27,7 +27,7 @@ When an admin invites a new team lead, Supabase Auth sends the initial invite em
 
 A scheduled job (`POST /api/v1/jobs/email-comments-digest`) sends digest emails to clients summarizing new comments on their issues since the last notification.
 
-This ensures clients who aren't actively checking BugSense still stay informed about issue progress.
+This ensures clients who aren't actively checking BugSense still stay informed about issue progress. This happens every 30 minutes.
 
 <Frame>
   <img
@@ -41,7 +41,7 @@ This ensures clients who aren't actively checking BugSense still stay informed a
 
 ### Weekly report emails
 
-When a weekly report is approved, BugSense sends an email to project clients with a summary and a link to view the full report.
+When a weekly report is approved, BugSense sends an email to project clients with a summary and a link to view the full report. This happens after the report is approved by the team lead.
 
 <Frame>
   <img
