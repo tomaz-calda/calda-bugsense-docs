@@ -15,8 +15,13 @@ Add the dependency to your `pubspec.yaml`:
 dependencies:
   calda_bug_sdk:
     git:
-      url: https://github.com/your-org/flutter-bug-report-sdk.git
+      url: https://github.com/matevzCalda/flutter-bug-report-sdk.git
+      ref: 1.3.3
 ```
+
+<Note>
+Always check the [latest tag](https://github.com/matevzCalda/flutter-bug-report-sdk/tags) and pin your dependency to it.
+</Note>
 
 Then run:
 
@@ -43,8 +48,8 @@ void main() async {
     apiKey: 'YOUR_PROJECT_API_KEY',
     env: 'staging',
     release: 'myapp@1.0.0+1',
-    app: AppInfo(name: 'My App', version: '1.0.0', build: '1'),
-    session: SessionInfo(sessionId: 'sess_${DateTime.now().millisecondsSinceEpoch}'),
+    app: const AppInfo(name: 'My App', version: '1.0.0', build: '1'),
+    session: const SessionInfo(sessionId: 'sess_123'),
   ));
 
   runApp(const MyApp());
@@ -56,27 +61,48 @@ void main() async {
 Wrap your app with the breadcrumb scope, screenshot boundary, and floating button:
 
 ```dart
-final _repaintKey = GlobalKey();
-
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final Dio dio = Dio();
+
+  @override
+  void initState() {
+    super.initState();
+
+    CaldaBug.setStateSnapshotProvider(() => {
+      'screen': 'home',
+      'featureFlags': {'newCheckout': true},
+    });
+
+    final interceptor = CaldaBug.dioInterceptor(
+      redactUrl: (u) => u.split('?').first,
+    );
+    if (interceptor != null) {
+      dio.interceptors.add(interceptor);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorObservers: [CaldaBug.navigatorObserver()],
       home: CaldaBugBreadcrumbScope(
-        child: CaldaBugBoundary(
-          repaintKey: _repaintKey,
-          child: Stack(
-            children: [
-              const MyHomePage(),
-              CaldaBugFloatingButton(
-                repaintKey: _repaintKey,
-                recorder: createCaldaScreenRecordRecorder(),
-              ),
-            ],
-          ),
+        child: Stack(
+          children: [
+            CaldaBugBoundary(
+              child: const MyHomePage(),
+            ),
+            CaldaBugFloatingButton(
+              enabled: CaldaBug.config.env == 'staging',
+              recorder: createCaldaScreenRecordRecorder(),
+            ),
+          ],
         ),
       ),
     );
@@ -88,18 +114,23 @@ class MyApp extends StatelessWidget {
 
 ```dart
 final dio = Dio();
-dio.interceptors.add(
-  CaldaBug.dioInterceptor(redactUrl: (url) => url.split('?').first),
+final interceptor = CaldaBug.dioInterceptor(
+  redactUrl: (url) => url.split('?').first,
 );
+if (interceptor != null) {
+  dio.interceptors.add(interceptor);
+}
 ```
+
+The `dioInterceptor()` method returns `null` if network capture is disabled in the config.
 
 ## Configuration
 
 ```dart
 CaldaBugConfig(
   endpoint: Uri,              // Backend ingest URL (required)
-  apiKey: String,             // Fallback auth key (required)
-  env: String,                // "staging" | "production" (required)
+  apiKey: String,             // API key for auth (required)
+  env: String,                // "staging" | "prod" (required)
   release: String,            // e.g. "myapp@1.0.0+1" (required)
   app: AppInfo,               // App metadata (required)
   session: SessionInfo,       // Session info (required)
@@ -115,6 +146,21 @@ CaldaBugConfig(
   enableNetworkCapture: true,        // Dio interceptor
   enableBreadcrumbCapture: true,     // Tap breadcrumbs
   redaction: RedactionConfig(),      // Sensitive data redaction rules
+)
+```
+
+### AppInfo & SessionInfo
+
+```dart
+AppInfo(
+  name: 'My App',
+  version: '1.0.0',
+  build: '1',
+)
+
+SessionInfo(
+  sessionId: 'sess_123',
+  user: {'id': 'user_abc'},  // optional user metadata
 )
 ```
 
@@ -136,21 +182,27 @@ All events are stored in a ring buffer (default capacity: 800).
 
 The main entry point for users. Positioned as a floating action button (typically in a `Stack`).
 
+```dart
+CaldaBugFloatingButton(
+  enabled: true,                              // Show/hide the button
+  recorder: createCaldaScreenRecordRecorder(), // Screen recorder instance
+)
+```
+
 **Flow:**
 1. Tap → auth check. If not logged in, shows login sheet.
 2. Menu appears with options:
-   - **Take a screenshot and report** — captures the `RepaintBoundary` and opens the report sheet.
+   - **Take a screenshot and report** — captures the `CaldaBugBoundary` and opens the report sheet.
    - **Start recording (max 30s)** — starts screen recording; button turns red; tap again to stop.
    - **Settings** — manage user, log out.
-3. Report sheet opens with title, rich-text description, platform/environment selectors, and media preview.
+3. Report sheet opens with title, rich-text description (bold, italic, strikethrough), platform/environment selectors, and media preview.
 
 ### CaldaBugBoundary
 
-Wraps your app content in a `RepaintBoundary` used for screenshot capture. Must share the same `GlobalKey` as the floating button.
+Wraps your app content for screenshot capture.
 
 ```dart
 CaldaBugBoundary(
-  repaintKey: _repaintKey,
   child: YourAppContent(),
 )
 ```
@@ -165,14 +217,66 @@ CaldaBugBreadcrumbScope(
 )
 ```
 
+## Event types
+
+The SDK uses typed factory constructors for events:
+
+```dart
+// Log event
+BugEvent.log(
+  t: DateTime.now().millisecondsSinceEpoch,
+  level: 'info',          // 'debug' | 'info' | 'warn' | 'error'
+  message: 'User logged in',
+  attrs: {},
+)
+
+// Error event
+BugEvent.err(
+  t: nowMs,
+  name: 'FlutterError',
+  message: 'Widget build failed',
+  stack: stackTraceString,
+  attrs: {'handled': true},
+)
+
+// Navigation event
+BugEvent.nav(
+  t: nowMs,
+  from: '/home',
+  to: '/profile',
+  attrs: {},
+)
+
+// Network event
+BugEvent.net(
+  t: nowMs,
+  method: 'GET',
+  url: 'https://api.example.com/users',
+  status: 200,
+  ms: 150,
+  attrs: {'client': 'dio'},
+)
+
+// Breadcrumb event
+BugEvent.breadcrumb(
+  t: nowMs,
+  action: 'tap',
+  target: 'ElevatedButton',
+  route: '/home',
+  attrs: {},
+)
+```
+
 ## Custom events
 
 Add events to the buffer at any time:
 
 ```dart
-CaldaBug.addEvent(BugEvent(
-  type: 'custom',
-  data: {'action': 'purchase', 'amount': 29.99},
+CaldaBug.addEvent(BugEvent.log(
+  t: DateTime.now().millisecondsSinceEpoch,
+  level: 'info',
+  message: 'Purchase completed',
+  attrs: {'action': 'purchase', 'amount': 29.99},
 ));
 ```
 
@@ -196,9 +300,32 @@ CaldaBug.setStateSnapshotProvider(() => {
 | `CaldaBug.getLastLogLines({limit})` | Get recent log lines (default: 500) |
 | `CaldaBug.getReproductionSummary()` | Text summary from captured events |
 | `CaldaBug.navigatorObserver()` | Returns a `NavigatorObserver` for route tracking |
-| `CaldaBug.dioInterceptor(redactUrl?)` | Returns a Dio interceptor for network capture |
+| `CaldaBug.dioInterceptor(redactUrl?)` | Returns a Dio interceptor (or `null` if disabled) |
 | `CaldaBug.setStateSnapshotProvider(fn)` | Register an app-state snapshot function |
 | `CaldaBug.report(...)` | Manually build and upload a report |
+| `CaldaBug.lastRoute` | Get the last navigated route |
+| `CaldaBug.config` | Get the current configuration |
+
+### Manual report
+
+```dart
+final screenshot = await capturePng(pixelRatio: 2.0);
+final deviceInfo = await DeviceInfo.collect();
+
+final result = await CaldaBug.report(
+  title: 'App crashes on checkout',
+  description: 'The app freezes when tapping Pay',
+  platform: 'ios',            // 'ios' | 'android' | 'web'
+  environment: 'staging',     // 'staging' | 'production'
+  deviceInfo: deviceInfo,
+  screenshotPng: screenshot,
+  attachments: [],            // List<ReportAttachment>
+  token: myAuthToken,         // Optional: override auth
+);
+
+debugPrint('Report ID: ${result.reportId}');
+debugPrint('View at: ${result.viewerUrl}');
+```
 
 ## Report payload
 
@@ -221,11 +348,11 @@ The JSON payload follows the same schema as the Web SDK:
   "env": "staging",
   "release": "myapp@1.0.0+1",
   "app": { "name": "My App", "version": "1.0.0", "build": "1" },
-  "device": { "platform": "android", "os": "Android 14", "model": "Pixel 8", ... },
+  "device": { "platform": "android", "os": "Android 14", "model": "Pixel 8", "..." : "..." },
   "session": { "sessionId": "..." },
   "userMessage": "App freezes when scrolling",
   "reproductionSummary": "Navigated to /feed, scrolled down, ...",
-  "events": [ ... ],
+  "events": [ "..." ],
   "attachments": { "screenshot": true, "count": 1 }
 }
 ```
@@ -247,9 +374,12 @@ Configure redaction rules to prevent sensitive data from appearing in reports:
 ```dart
 CaldaBugConfig(
   redaction: RedactionConfig(
-    keyBlocklist: ['authorization', 'password', 'token'],
-    queryBlocklist: ['token', 'auth', 'api_key'],
-    urlBlocklist: [RegExp(r'/auth/')],
+    dropQuery: true,                                     // Strip URL query strings
+    queryAllowlist: [],                                  // Query params to keep
+    queryBlocklist: ['token', 'auth', 'password'],       // Params to redact
+    urlBlocklist: [RegExp(r'/auth/')],                   // URLs to skip entirely
+    keyBlocklist: ['authorization', 'cookie', 'secret'], // Header keys to redact
+    valuePatterns: [],                                   // Regex patterns for values
     replacement: '[REDACTED]',
   ),
 )
