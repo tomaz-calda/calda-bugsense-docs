@@ -39,8 +39,8 @@
             "pages": ["architecture", "authentication", "data-model", "quickstart"]
           },
           {
-            "group": "Roadmap",
-            "pages": ["roadmap"]
+            "group": "Extras",
+            "pages": ["project-timeline", "roadmap"]
           }
         ]
       },

@@ -1,0 +1,147 @@
+---
+title: "Project Timeline"
+description: "Week-by-week overview of how BugSense was built — from initial brainstorming to the final product."
+---
+
+## Overview
+
+BugSense was built in **5 weeks** as part of an internal challenge at **Calda**. The team went from a Slack message to a fully working product with a dashboard, two SDKs, a ChatGPT integration, and full Linear/Slack connectivity.
+
+---
+
+## Week 1 — Brainstorming
+
+**Feb 17 – Feb 23**
+
+- **Feb 17** — Challenge kickoff via Slack. Each team member brainstormed individually: pain points, scope suggestions, and extra-mile ideas.
+- **Feb 23** — First team meeting. Everyone presented their brainstorming results. The team created a feature list, decided on the direction (dashboard + SDKs + AI integrations), and assigned roles.
+
+---
+
+## Week 2 — Planning & SDK prototypes
+
+**Feb 24 – Mar 2**
+
+- Continued planning and aligning on the feature set.
+- **Web SDK** — initial project scaffolding, screenshot capture, device info collection.
+- **Flutter SDK** — first commit, project structure setup.
+
+---
+
+## Week 3 — Design & early development
+
+**Mar 3 – Mar 9**
+
+- **Mar 4** — Second team meeting. Finalized the feature plan, defined the notification system, reviewed UX examples from the designer.
+- **Mar 8** — First version of the UI design ready for review.
+- **Web SDK** — redesigned report sheet based on Figma designs, added improvements.
+- **Flutter SDK** — device info, screen recording, report sheet redesign from Figma.
+- **Backend** — initial commit, Supabase setup, user management tables.
+
+---
+
+## Week 4 — Full-stack build
+
+**Mar 10 – Mar 16**
+
+- **Mar 10** — UI design review with the team. Development started across all repos.
+
+**Backend:**
+- Email and Slack notification services
+- Branded auth email templates (invite, confirmation, password recovery)
+- Linear integration — project linking, issue creation, bidirectional sync
+- Linear webhooks — issue and comment events
+- Comments CRUD endpoints
+- Slack digest job (new ticket notifications every 30 min)
+- AI duplicate detection and weekly report generation
+- Comment email digest
+- ChatGPT app endpoints and tools
+
+**Frontend:**
+- Auth flows (signup, login, set password)
+- Client dashboard with kanban board
+- Admin dashboard — projects table, create project, Linear connection
+- Weekly reports UI (view, edit, approve)
+- Team leads management page
+
+**Web SDK:**
+- Complete design from Figma, Supabase auth, login screen, settings
+- Connected to real backend API
+
+**Flutter SDK:**
+- Redesigned UI from Figma, markdown support
+- Connected to real backend API
+
+---
+
+## Week 5 — Polish & ship
+
+**Mar 17 – Mar 20**
+
+**Backend:**
+- Interactive Slack webhooks
+- ChatGPT OAuth flow and MCP server
+- Inbox notifications system
+- Team leads CRUD
+- Linear OAuth refactoring and multi-user support
+- Duplicate issue prevention
+- Hotfixes and stabilization
+
+**Frontend:**
+- Client UI refinements
+- API endpoint updates
+
+**SDKs:**
+- API call fixes, video upload improvements
+
+**Docs:**
+- Full documentation site created
+- Architecture, authentication, data model, integration guides
+- API reference for all endpoints
+- SDK documentation
+- Testing guide
+
+**Mar 20** — Deadline. App submitted.
+
+---
+
+## Visual timeline
+
+<Steps>
+  <Step title="Feb 17 — Kickoff" icon="rocket">
+    Challenge announced via Slack. Individual brainstorming begins.
+  </Step>
+  <Step title="Feb 23 — First meeting" icon="users">
+    Team presents ideas, creates feature list, assigns roles.
+  </Step>
+  <Step title="Mar 2 — SDK prototypes" icon="code">
+    Web SDK and Flutter SDK scaffolded with screenshot and device capture.
+  </Step>
+  <Step title="Mar 4 — Second meeting" icon="clipboard-list">
+    Final feature plan, notification system defined, UX review.
+  </Step>
+  <Step title="Mar 8 — UI design ready" icon="paintbrush">
+    First version of the Figma design delivered for review.
+  </Step>
+  <Step title="Mar 10 — Development starts" icon="terminal">
+    Design approved. Full-stack development kicks off across all repos.
+  </Step>
+  <Step title="Mar 12 — Backend & frontend live" icon="server">
+    Auth, Linear integration, email/Slack services, dashboard UI, client kanban board.
+  </Step>
+  <Step title="Mar 15 — AI & reports" icon="brain">
+    Duplicate detection, weekly AI reports, comment digests, Slack notifications.
+  </Step>
+  <Step title="Mar 16 — ChatGPT integration" icon="message-circle">
+    MCP server with tools for querying projects and issues via ChatGPT.
+  </Step>
+  <Step title="Mar 17 — Inbox & OAuth" icon="bell">
+    Inbox notifications, ChatGPT OAuth, interactive Slack webhooks.
+  </Step>
+  <Step title="Mar 19 — Docs & stabilization" icon="book-open">
+    Full documentation site, API reference, SDK guides, hotfixes.
+  </Step>
+  <Step title="Mar 20 — Shipped" icon="flag">
+    App submitted before deadline.
+  </Step>
+</Steps>
