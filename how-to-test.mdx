@@ -102,7 +102,7 @@ The Web SDK works the same way as the Flutter SDK, but inside a web application.
 
 <Steps>
   <Step title="Open the web app">
-    Open the web application that has the BugSense SDK integrated ([try here](TODO)). You should see a floating bug button.
+    Open the web application that has the BugSense SDK integrated ([try here](https://challenge-testing-next-js-project-7hpszx8lv.vercel.app/)). You should see a floating bug button.
   </Step>
   <Step title="Click the bug button">
     Click the floating button. If you are not logged in, a login dialog will appear. Sign in with your **client credentials**.
@@ -111,7 +111,17 @@ The Web SDK works the same way as the Flutter SDK, but inside a web application.
     After logging in, you get the same options:
 
     - **Take a screenshot and report** — captures the current page
+
+      <Note>
+        Your browser will show its default screen capture dialog. Select the **Window** tab and choose the tab with this web app, or select **Entire Screen** to capture everything.
+      </Note>
+
     - **Start recording (max 30s)** — records your screen, then opens the report form with the recording attached
+
+      <Note>
+        Once recording starts, the bug button will change to a **Stop Recording** button. Click it to stop the recording and open the report form.
+      </Note>
+
     - **Settings** — manage your account
   </Step>
   <Step title="Fill in the report">
